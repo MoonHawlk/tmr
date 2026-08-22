@@ -109,7 +109,7 @@ impl App {
     fn execute(&mut self, cmd: Command) -> Result<AppEvent> {
         match cmd {
             Command::ListDir(dir) => {
-                let entries = self.workspace.list_dir(&dir)?;
+                let entries = self.workspace.list_dir(&dir, self.config.ui.show_hidden)?;
                 self.current_dir = self.workspace.guard(&dir)?;
                 self.entries = entries.clone();
                 Ok(AppEvent::DirectoryListed {
@@ -181,7 +181,9 @@ impl App {
     }
 
     fn refresh_current_dir(&mut self) -> Result<()> {
-        self.entries = self.workspace.list_dir(&self.current_dir)?;
+        self.entries = self
+            .workspace
+            .list_dir(&self.current_dir, self.config.ui.show_hidden)?;
         Ok(())
     }
 }

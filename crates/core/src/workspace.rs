@@ -72,8 +72,8 @@ impl Workspace {
 
     /// Lists a single directory (non-recursive) inside the workspace,
     /// directories first, then files, both alphabetically. Hidden entries
-    /// (dotfiles) are skipped.
-    pub fn list_dir(&self, dir: &Path) -> Result<Vec<Entry>> {
+    /// (dotfiles) are skipped unless `show_hidden` is set.
+    pub fn list_dir(&self, dir: &Path, show_hidden: bool) -> Result<Vec<Entry>> {
         let target = self.guard(dir)?;
         let read_dir = std::fs::read_dir(&target).map_err(|e| AppError::from_io(&target, e))?;
 
@@ -82,7 +82,7 @@ impl Workspace {
         for entry in read_dir {
             let entry = entry.map_err(|e| AppError::from_io(&target, e))?;
             let name = entry.file_name().to_string_lossy().into_owned();
-            if name.starts_with('.') {
+            if !show_hidden && name.starts_with('.') {
                 continue;
             }
             let file_type = match entry.file_type() {
@@ -124,9 +124,21 @@ mod tests {
     #[test]
     fn lists_dirs_before_files_and_skips_hidden() {
         let (_dir, ws) = make_workspace();
-        let entries = ws.list_dir(ws.root().to_path_buf().as_path()).unwrap();
+        let entries = ws
+            .list_dir(ws.root().to_path_buf().as_path(), false)
+            .unwrap();
         let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
         assert_eq!(names, vec!["sub", "a.md", "b.md"]);
+    }
+
+    #[test]
+    fn show_hidden_includes_dotfiles() {
+        let (_dir, ws) = make_workspace();
+        let entries = ws
+            .list_dir(ws.root().to_path_buf().as_path(), true)
+            .unwrap();
+        let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+        assert!(names.contains(&".hidden.md"));
     }
 
     #[test]

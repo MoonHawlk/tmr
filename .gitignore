@@ -19,3 +19,12 @@ target
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# tmr sandbox playground: only the shipped example files are tracked.
+# Anything else you create in sandbox/ while testing tmr is ignored, so
+# manual testing never dirties `git status`.
+sandbox/*
+!sandbox/README.md
+!sandbox/welcome.md
+!sandbox/showcase.md
+!sandbox/logo.png

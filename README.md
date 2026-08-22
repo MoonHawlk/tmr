@@ -70,6 +70,19 @@ If no directory is given, tmr uses `[workspace] default_dir` from
 `config.toml` if set, otherwise the current working directory — the same
 convention most terminal file/note browsers use.
 
+### Try it risk-free: `sandbox/`
+
+The repo ships a [`sandbox/`](sandbox/) directory just for trying tmr out
+— open/edit/create/delete files there and it can't touch your real notes:
+
+```sh
+tmr sandbox
+```
+
+Only the example files it ships with are tracked in git; anything else
+you create inside `sandbox/` while testing is gitignored, so experimenting
+never dirties `git status`. See [`sandbox/README.md`](sandbox/README.md).
+
 ## Keybindings
 
 All of these are remappable — see [Configuration](#configuration). Defaults:
@@ -199,6 +212,12 @@ cargo test --workspace        # run all unit tests
 cargo clippy --workspace --all-targets
 cargo fmt --all
 ```
+
+If you're an AI agent (or onboarding one) working on this repo, see
+[`.llm/`](.llm/) — task-oriented docs on driving the TUI, the config/theme
+schema, the crate architecture and data flow, how to extend it (widgets,
+addons, formats), and known-limitation troubleshooting, written to be
+read on demand rather than all at once.
 
 ## Tests
 
