@@ -5,6 +5,20 @@ description: Build, test, lint, format, and add tests - commands and conventions
 
 # Development workflow
 
+## Update the changelog and TODO list
+
+`CHANGELOG.md` is maintained on every change that adds/fixes/changes
+user-facing behavior — that's a standing project convention, not
+optional. Add an entry under `## [Unreleased]` (create `### Added` /
+`### Changed` / `### Fixed` subsections as needed, following
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) style — see the
+existing entries for the level of detail expected: concrete enough that
+someone reading only the changelog understands *what* changed and
+*where*, without needing to read the diff). If your change closes an item
+in `README.md`'s `## TODO` checklist, check it off there too (and add a
+new item if you've identified new follow-up work) — internal-only
+refactors, test additions, or doc-only changes don't need either.
+
 ## Commands
 
 ```sh

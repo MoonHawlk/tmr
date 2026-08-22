@@ -11,8 +11,10 @@ Known limitation, not a bug: entering Edit mode always seeds the cursor
 at `(row 0, col 0)` of the file (`crates/tui/src/editor.rs::Editor::new`),
 regardless of which line you were viewing in the rendered document. There
 is no mapping from "rendered line index" back to "raw source line
-number" yet — rendered lines and source lines aren't 1:1 (a heading adds
-a `#` marker, a list item's continuation lines are indented, etc.), so
+number" yet — rendered lines and source lines aren't 1:1 (a heading's
+raw `#` marker is hidden and replaced with styling, a list item's
+continuation lines are indented, a checkbox's `[ ]`/`[x]` becomes a
+`☐`/`☑` glyph, etc.), so
 this would need real bookkeeping to fix, not a one-line change. Documented
 in the README roadmap.
 
@@ -28,6 +30,21 @@ does a general action lookup while editing, precisely so ordinary typing
 (including `Tab`, `q`, `y`, etc.) can't accidentally trigger a global
 command. Search/Prompt modes have the same property (see
 `keybindings-and-workflows.md`).
+
+## "Opening a `.txt` file doesn't show any Markdown styling"
+
+Intentional, not a bug: the rich "Obsidian-style" rendering (hidden
+syntax markers, heading hierarchy, checkbox glyphs, ...) is scoped to
+`DocumentFormat::Markdown` only. Any other format —  including `.txt`
+and unrecognized extensions — renders via
+`markdown_view::render_plain_text`, which shows the file's raw content
+line-for-line with no parsing at all; a literal `# heading` or
+`- [ ] task` inside a `.txt` file stays exactly as typed. This dispatch
+happens in `crates/tui/src/input.rs::refresh_rendered`, matching on
+`doc.format`. If you want Markdown-*like* files with a different
+extension to render richly, add that extension to
+`DocumentFormat::from_path` (`crates/core/src/document.rs`) rather than
+loosening the dispatch — see `extending-the-app.md`.
 
 ## "Images aren't rendering, just `[image: name.png]`"
 

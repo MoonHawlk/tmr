@@ -93,7 +93,8 @@ works until you've actually threaded it through `input.rs`.
 
 ## Adding a new document format
 
-Only Markdown renders today. The seam:
+Only Markdown gets real rendering today; everything else (`.txt`,
+unrecognized extensions) falls through to a plain-text path. The seam:
 
 1. `tmr_core::document::DocumentFormat` (`crates/core/src/document.rs`)
    is the format enum, detected by extension in `DocumentFormat::from_path`.
@@ -107,14 +108,20 @@ Only Markdown renders today. The seam:
    format doesn't fit that shape (e.g. a JSON viewer might want a tree of
    key/value nodes instead) — the only real contract is "produces
    something `tmr-tui` knows how to turn into `Vec<RenderedLine>`".
-4. In `tmr-tui`, `crates/tui/src/input.rs::refresh_rendered` and
-   `activate_selected` are where rendering is currently hardcoded to
-   `tmr_markdown::parse` — that's the dispatch point that needs a `match
-   document.format { Markdown => ..., YourFormat => ... }` once a second
-   format exists. There's no format-registry abstraction there yet
-   (deliberately — the brief calls for infrastructure, not fully built
-   out multi-format support in v1); adding a second format is the trigger
-   for actually building that dispatch, not before.
+4. In `tmr-tui`, `crates/tui/src/input.rs::refresh_rendered` already
+   dispatches on `doc.format`: `DocumentFormat::Markdown` goes through
+   `tmr_markdown::parse` + `markdown_view::render` (the Obsidian-style
+   path), everything else goes through `markdown_view::render_plain_text`.
+   Add your variant as a new match arm calling your own parser + a new
+   `render_your_format` function in `markdown_view.rs` (or a sibling
+   module) — following the existing arms is the reference, there's no
+   separate format-registry abstraction to learn.
+5. **Keep the "only `.md` gets rich rendering" rule intact** unless
+   explicitly asked to change it: a `.txt` file (or any format without
+   its own render arm) must keep showing exactly what's on disk, never
+   be silently parsed as Markdown — that was a real bug fixed in this
+   codebase's history (see `CHANGELOG.md`'s Unreleased section), don't
+   reintroduce it by adding a fallback that guesses.
 
 ## Adding a Kitty/iTerm2/Sixel image backend
 

@@ -100,10 +100,17 @@ you're adding a new user-facing operation, add a `Command` variant and an
 - `editor.rs` — `Editor`, a minimal hand-rolled multi-line text buffer
   (no external editor-widget dependency) used only while in Edit mode.
 - `markdown_view.rs` — `Block` tree -> `Vec<RenderedLine>` (one entry per
-  displayed line, each optionally tagged with a `task_index`). Explicitly
-  does **not** word-wrap — see the module doc comment for why (wrapping
-  would decouple "line index" from "terminal width", which the
-  task-toggle-by-cursor and scroll-follows-cursor logic both depend on).
+  displayed line, each optionally tagged with a `task_index`), styled
+  "Obsidian-style": raw syntax markers are never printed, each construct
+  gets its own glyph/color/weight (see `heading_style`, `bullet_glyph`,
+  and the `Blockquote`/`CodeBlock`/task-list arms in `render_block`).
+  Also exports `render_plain_text`, the untouched-text path used for
+  every non-Markdown format — `input.rs::refresh_rendered` picks between
+  the two based on `DocumentFormat`, so this rich styling only ever
+  applies to `.md` files. Explicitly does **not** word-wrap — see the
+  module doc comment for why (wrapping would decouple "line index" from
+  "terminal width", which the task-toggle-by-cursor and
+  scroll-follows-cursor logic both depend on).
 - `image_backend.rs` — capability detection (env vars only, never a
   blocking terminal query) + a Unicode half-block renderer + text
   fallback. See `extending-the-app.md` for adding a Kitty/Sixel backend.

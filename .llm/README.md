@@ -25,6 +25,14 @@ don't need all of them for every task:
 | [`skills/development-workflow.md`](skills/development-workflow.md) | Build, test, lint, format, or add tests |
 | [`skills/troubleshooting.md`](skills/troubleshooting.md) | Diagnose something that isn't working as expected |
 
+## Before you finish any change
+
+Update [`CHANGELOG.md`](../CHANGELOG.md) (under `## [Unreleased]`) and,
+if relevant, check off / add to `README.md`'s `## TODO` list — see
+`skills/development-workflow.md` for the expected format. This applies to
+any change with user-facing effect; skip it for pure refactors or doc-only
+edits.
+
 ## The one invariant to never break
 
 `crates/core` (`tmr-core`) must never depend on `ratatui`, `crossterm`, or

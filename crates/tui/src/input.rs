@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use tmr_core::app::App;
 use tmr_core::command::Command;
+use tmr_core::document::DocumentFormat;
 use tmr_core::events::AppEvent;
 use tmr_core::input::{Key, KeyCode};
 
@@ -36,13 +37,23 @@ pub fn refresh_rendered(
         .as_ref()
         .map(|e| e.to_content())
         .unwrap_or_else(|| doc.content.clone());
-    let base_dir = doc
-        .path
-        .parent()
-        .unwrap_or(app.workspace().root())
-        .to_path_buf();
-    let blocks = tmr_markdown::parse(&content);
-    ui.rendered = markdown_view::render(&blocks, palette, image_cap, &base_dir, width);
+    // The Obsidian-style rich rendering (hidden syntax markers, per-element
+    // styling, checkbox glyphs, ...) is Markdown-specific — every other
+    // format is shown as plain, unparsed text.
+    ui.rendered = match doc.format {
+        DocumentFormat::Markdown => {
+            let base_dir = doc
+                .path
+                .parent()
+                .unwrap_or(app.workspace().root())
+                .to_path_buf();
+            let blocks = tmr_markdown::parse(&content);
+            markdown_view::render(&blocks, palette, image_cap, &base_dir, width)
+        }
+        DocumentFormat::PlainText | DocumentFormat::Unknown => {
+            markdown_view::render_plain_text(&content, palette)
+        }
+    };
     ui.doc_cursor = ui.doc_cursor.min(ui.rendered.len().saturating_sub(1));
 }
 

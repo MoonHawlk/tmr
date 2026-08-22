@@ -28,9 +28,14 @@ tmr ~/notes
 
 - Navigate directories and list `.md` files.
 - Open, view, edit, save, create and delete files (delete asks to confirm).
-- Markdown rendering: headings, paragraphs, lists, ordered lists, code
-  spans/blocks, blockquotes, tables, links, bold/italic, thematic breaks,
-  and images.
+- Obsidian-style Markdown rendering, **for `.md` files only** — raw syntax
+  markers (`#`, `**`, `` ` ``, `[]()`, `> `) are never shown; each element
+  gets its own glyph, color and weight instead: heading levels get
+  decreasing prominence (H1 bold+underlined+ruled, down to muted italic at
+  H6), checkboxes render as `☐`/`☑`, nested bullets vary (`•`/`◦`/`▪`),
+  blockquotes get a `▎` bar, code blocks a `▏` bar, inline code a padded
+  pill, links are colored+underlined. Any other format (`.txt`, unknown
+  extensions) is shown as plain, untouched text — no parsing at all.
 - Interactive task-list checkboxes (`- [ ]` / `- [x]`) — toggle with the
   cursor, persisted straight to the `.md` file.
 - Filename search and in-document text search.
@@ -173,12 +178,16 @@ plugins a poor fit for a v1; this trait is the seam a future dynamic- or
 WASM-based loader could sit behind without changing how addons are
 written. One example ships (`StatsAddon`, a session file-op counter).
 
-**Formats.** `tmr_core::document::DocumentFormat` currently distinguishes
-Markdown / plain text / unknown by extension; only Markdown is actually
-rendered (via `tmr-markdown`). Adding TXT/JSON/YAML rendering later means
-adding a sibling to the `tmr-markdown` crate and a dispatch arm in the
-TUI's rendering — the core's document/save/open flow already doesn't care
-what format it's holding.
+**Formats.** `tmr_core::document::DocumentFormat` distinguishes Markdown /
+plain text / unknown by extension, and the TUI already dispatches on it
+(`crates/tui/src/input.rs::refresh_rendered`): `.md` gets the full
+Obsidian-style rendering via `tmr-markdown`, everything else falls
+through to `markdown_view::render_plain_text` — untouched text, no
+parsing. Adding a third rendered format (TXT/JSON/YAML with its own
+styling, rather than the current plain-text catch-all) means adding a
+sibling to the `tmr-markdown` crate and another arm in that same `match`
+— the core's document/save/open flow already doesn't care what format
+it's holding.
 
 ## Roadmap / known limitations
 
@@ -203,6 +212,28 @@ what format it's holding.
 - **No file-system watching** — the listing refreshes on navigation and
   on the explicit `reload` action, not via polling or `inotify`.
 - Widgets/addons are compiled-in only (see Architecture above).
+
+## TODO
+
+Tracked here as a plain checklist (open it in tmr itself — `tmr .` from
+the repo root and open `README.md` — to see the checkbox rendering these
+items describe). Update this list, and [`CHANGELOG.md`](CHANGELOG.md),
+as part of any change that adds/fixes user-facing behavior.
+
+- [x] Obsidian-style Markdown rendering, `.md`-only (per-element glyphs,
+      hidden raw syntax, heading hierarchy)
+- [x] Plain-text rendering path for non-Markdown files
+- [x] `[ui] show_hidden` config option actually wired to the file listing
+- [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
+- [ ] Sync the editor's opening cursor position to the line you were viewing
+- [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
+- [ ] Recursive/global search across the workspace
+- [ ] Config/theme hot-reload without restarting tmr
+- [ ] Syntax highlighting inside fenced code blocks
+- [ ] Mouse support (click to select/open, scroll)
+- [ ] Undo/redo in the built-in editor
+- [ ] Rendering support for a second document format (TXT/JSON/YAML), to
+      exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
 
 ## Development
 
