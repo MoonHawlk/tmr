@@ -69,8 +69,6 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
         ..UiState::default()
     };
     let image_cap = image_backend::detect_capability();
-    let resolved_keymap = app.keymap.resolve();
-    let tab_width = app.config.editor.tab_width;
 
     let root = app.workspace().root().to_path_buf();
     match app.dispatch(Command::ListDir(root)) {
@@ -79,11 +77,16 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
     }
 
     loop {
-        // Recomputed every iteration (cheap: a handful of hex-string
-        // parses) rather than once outside the loop, since the Settings
-        // window can change `app.theme` live — this keeps every frame in
-        // sync without needing a separate "theme changed" flag.
+        // Recomputed every iteration (all cheap: a handful of hex-string
+        // parses, and small-map/plain-field reads) rather than once
+        // outside the loop, since the Settings window can change
+        // `app.theme` live and `ctrl+r`'s config reload
+        // (`input.rs::reload_config`) can change `app.keymap`/
+        // `app.config` live — this keeps every frame and every keypress in
+        // sync without needing a separate "config changed" flag.
         let palette = Palette::from_theme(&app.theme);
+        let resolved_keymap = app.keymap.resolve();
+        let tab_width = app.config.editor.tab_width;
         terminal.draw(|f| ui::draw(f, app, &ui, &palette, image_cap))?;
 
         let has_ticking_widget = app

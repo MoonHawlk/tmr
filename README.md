@@ -127,7 +127,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+n`    | New file (prompts for a name)                       |
 | `r`         | Rename selected file                                |
 | `d`         | Delete selected file (asks to confirm with `y`)      |
-| `ctrl+r`    | Reload the current directory listing                |
+| `ctrl+r`    | Reload the current directory listing, and re-read `config.toml` (theme, keymap, editor, ui settings) |
 | `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
 | `ctrl+a`    | Edit mode only: select the entire document              |
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
@@ -294,7 +294,11 @@ as part of any change that adds/fixes user-facing behavior.
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
 - [ ] Recursive/global search across the workspace
-- [ ] Config/theme hot-reload without restarting tmr
+- [x] Config/theme hot-reload without restarting tmr — `ctrl+r` (`reload`)
+      now re-reads `config.toml` (theme, keymap overrides, editor tab
+      width, ui border/line-indicator) in addition to its existing
+      directory-listing refresh; workspace directory and addon/widget
+      registration remain startup-only
 - [ ] Syntax highlighting inside fenced code blocks
 - [ ] Mouse support (click to select/open, scroll, drag-to-select text)
 - [ ] Undo/redo in the built-in editor

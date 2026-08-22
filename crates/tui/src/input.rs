@@ -239,10 +239,21 @@ fn handle_action(
                 buffer: String::new(),
             };
         }
-        "reload" => match app.dispatch(Command::Reload) {
-            Ok(_) => ui.set_status("Reloaded", StatusLevel::Info),
-            Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
-        },
+        "reload" => {
+            let config_warning = reload_config(app, ui);
+            let live_palette = Palette::from_theme(&app.theme);
+            refresh_rendered(ui, app, &live_palette, image_cap, width);
+            match app.dispatch(Command::Reload) {
+                Ok(_) => match config_warning {
+                    Some(w) => ui.set_status(
+                        format!("Reloaded; config warning: {w}"),
+                        StatusLevel::Warning,
+                    ),
+                    None => ui.set_status("Reloaded", StatusLevel::Info),
+                },
+                Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
+            }
+        }
         "help" => {
             ui.mode = Mode::Help {
                 query: String::new(),
@@ -259,6 +270,39 @@ fn handle_action(
 
 fn tab_width_of(app: &App) -> usize {
     app.config.editor.tab_width
+}
+
+/// Re-reads `config.toml` from disk and re-applies everything it's safe to
+/// change on a running session: theme, keymap overrides, the Settings
+/// window's `Default`/line-indicator baseline, and (implicitly, since
+/// `app.config` is read fresh every frame — see `ui.rs::draw`) border
+/// style. Bundled into the same `ctrl+r` binding as the existing directory
+/// refresh, so `show_hidden` picks up a config change too via that
+/// re-list. Deliberately narrow: it does *not* touch the workspace
+/// directory or which addons/widgets are registered — both startup-only
+/// concerns this function has no business owning (there's no live
+/// register/unregister path for either). Mirrors the same
+/// load-config/resolve-theme/build-keymap sequence `main.rs` runs once at
+/// startup. Returns the first warning `Config::load`/`Theme::resolve`
+/// produced, if any (loading never hard-fails — see `Config::load`'s doc
+/// comment — so the (possibly-defaulted) config is applied either way).
+fn reload_config(app: &mut App, ui: &mut UiState) -> Option<String> {
+    let load_result = tmr_core::config::Config::load(None);
+    let config = load_result.config;
+    let config_dir = tmr_core::config::default_config_dir();
+    let (theme, theme_warning) =
+        tmr_core::theme::Theme::resolve(config_dir.as_deref(), &config.theme.name);
+
+    app.keymap = tmr_core::keymap::Keymap::with_overrides(config.keys.clone());
+    ui.default_theme_name = config.theme.name.clone();
+    ui.line_indicator =
+        crate::state::LineIndicatorStyle::from_config_str(&config.ui.line_indicator);
+    ui.theme_choice = crate::state::ThemeChoice::Default;
+    ui.default_theme = theme.clone();
+    app.theme = theme;
+    app.config = config;
+
+    load_result.warnings.into_iter().next().or(theme_warning)
 }
 
 /// `ui.doc_cursor` only maps 1:1 onto a raw source line for formats whose

@@ -9,6 +9,17 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Config/theme hot-reload: `ctrl+r` (`reload`) now re-reads `config.toml`
+  and re-applies theme, keymap overrides, editor tab width, and the
+  Settings window's `Default`/line-indicator baseline — in addition to
+  its existing directory-listing refresh — instead of requiring a
+  restart to pick up a config edit. Mirrors the same load/resolve
+  sequence `main.rs` runs once at startup; deliberately doesn't touch the
+  workspace directory or addon/widget registration, both startup-only
+  concerns with no live re-init path. Border style and `show_hidden` were
+  already effectively live (read fresh every frame, or via the paired
+  directory re-list) — this just makes that consistent for everything
+  else `config.toml` controls. See `input.rs::reload_config`.
 - Copy/cut the current Edit-mode selection to the system clipboard —
   `ctrl+c`/`ctrl+x` (new default bindings, `crates/core/src/keymap.rs`).
   Implemented via an OSC 52 terminal escape sequence rather than a native
