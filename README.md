@@ -27,7 +27,7 @@ with Markdown as its first supported format.
 Requires a Rust toolchain (stable, 2021 edition; developed against 1.98).
 
 ```sh
-git clone <this repo> tmr
+git clone https://github.com/MoonHawlk/tmr
 cd tmr
 cargo build --release
 # binary at target/release/tmr
