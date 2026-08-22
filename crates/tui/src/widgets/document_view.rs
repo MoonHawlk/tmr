@@ -83,6 +83,31 @@ fn overlay_style<'a>(
     out
 }
 
+/// Drops the first `skip` characters from `spans`, preserving each
+/// remaining span's own style — used to horizontally scroll the raw-
+/// source view in Edit mode. Applied *after* any selection overlay, since
+/// `overlay_style`'s column offsets are absolute (from the start of the
+/// line), not view-relative.
+fn skip_chars<'a>(spans: &[Span<'a>], skip: usize) -> Vec<Span<'a>> {
+    if skip == 0 {
+        return spans.to_vec();
+    }
+    let mut out = Vec::with_capacity(spans.len());
+    let mut remaining = skip;
+    for span in spans {
+        let len = span.content.chars().count();
+        if remaining >= len {
+            remaining -= len;
+            continue;
+        }
+        let content = span.content.as_ref();
+        let byte = char_byte_offset(content, remaining);
+        out.push(Span::styled(content[byte..].to_string(), span.style));
+        remaining = 0;
+    }
+    out
+}
+
 /// Draws the Document pane and returns its interior rect (inside the
 /// border), so callers can compute where within it to place the real
 /// terminal cursor (see `ui.rs::draw`, Edit-mode cursor placement).
@@ -103,6 +128,9 @@ pub fn draw(
     // as `rendered` — `None` outside Edit mode, where there's no selection
     // concept. See `crates/tui/src/editor.rs::Editor::selection_range`.
     selection: Option<((usize, usize), (usize, usize))>,
+    // Horizontal scroll offset (characters), non-zero only in Edit mode —
+    // see `UiState::doc_hscroll`/`ensure_doc_hscroll`.
+    hscroll: usize,
 ) -> Rect {
     let is_focused = focus == Focus::Document;
     let block = styled_block("DOCUMENT", border, palette, is_focused);
@@ -168,6 +196,10 @@ pub fn draw(
                     };
                     content_spans = overlay_style(&content_spans, start, end, Modifier::REVERSED);
                 }
+            }
+
+            if hscroll > 0 {
+                content_spans = skip_chars(&content_spans, hscroll);
             }
 
             let mut spans = vec![Span::styled(gutter_text, gutter_style)];
@@ -272,6 +304,37 @@ mod tests {
             .map(|s| s.content.to_string())
             .collect();
         assert_eq!(selected, "\u{e9}l");
+    }
+
+    #[test]
+    fn skip_chars_drops_a_prefix_from_a_single_span() {
+        let spans = vec![Span::raw("hello world")];
+        let out = skip_chars(&spans, 6);
+        let text: String = out.iter().map(|s| s.content.to_string()).collect();
+        assert_eq!(text, "world");
+    }
+
+    #[test]
+    fn skip_chars_zero_is_a_true_no_op() {
+        let spans = vec![Span::raw("hello")];
+        let out = skip_chars(&spans, 0);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0].content, "hello");
+    }
+
+    #[test]
+    fn skip_chars_spans_a_boundary_across_multiple_spans() {
+        let spans = vec![Span::raw("foo"), Span::raw("bar")];
+        let out = skip_chars(&spans, 4);
+        let text: String = out.iter().map(|s| s.content.to_string()).collect();
+        assert_eq!(text, "ar");
+    }
+
+    #[test]
+    fn skip_chars_past_the_end_yields_nothing() {
+        let spans = vec![Span::raw("hi")];
+        let out = skip_chars(&spans, 10);
+        assert!(out.is_empty());
     }
 
     #[test]

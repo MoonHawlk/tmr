@@ -27,8 +27,9 @@ use tmr_core::command::Command;
 
 use crate::input::ControlFlow;
 use crate::layout::{compute_panes, inner_size};
-use crate::state::UiState;
+use crate::state::{Mode, UiState};
 use crate::theme::Palette;
+use crate::widgets::document_view;
 
 /// Restores the terminal on drop, so a panic or early return can't leave
 /// the user's shell in raw/alternate-screen mode.
@@ -130,6 +131,15 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
             ControlFlow::Continue => {}
         }
         ui.ensure_doc_visible(doc_height as usize);
+        if let Mode::Edit = ui.mode {
+            if let Some(editor) = &ui.editor {
+                let gutter = document_view::gutter_cols(ui.rendered.len());
+                let available = doc_width.saturating_sub(gutter) as usize;
+                ui.ensure_doc_hscroll(editor.cursor().1, available);
+            }
+        } else {
+            ui.doc_hscroll = 0;
+        }
     }
     Ok(())
 }

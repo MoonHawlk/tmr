@@ -9,6 +9,14 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Horizontal scroll for the Edit-mode raw-source view: a cursor column
+  past the pane's right edge now scrolls the view to follow it, instead
+  of clamping the terminal cursor to the last visible column while the
+  underlying text stayed put. See `UiState::doc_hscroll`/
+  `ensure_doc_hscroll` (`crates/tui/src/state.rs`) and
+  `document_view::skip_chars` (`crates/tui/src/widgets/document_view.rs`),
+  which trims the horizontally-scrolled-past characters after any
+  selection overlay is applied.
 - Entering Edit mode now seeds the editor's cursor at the line you were
   viewing in Normal mode, for plain-text/unknown documents — previously it
   always started at `(0, 0)`. Markdown documents are unchanged for now:

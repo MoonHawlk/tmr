@@ -53,6 +53,7 @@ pub fn draw(
         empty_hint,
         ui.line_indicator,
         selection,
+        ui.doc_hscroll,
     );
 
     if let Some(side) = panes.side {
@@ -73,11 +74,16 @@ pub fn draw(
             // Must match `document_view::draw`'s gutter exactly, or the
             // cursor lands on the wrong column.
             let gutter = document_view::gutter_cols(ui.rendered.len());
-            if row >= ui.doc_scroll && doc_inner.height > 0 && doc_inner.width > gutter {
+            if row >= ui.doc_scroll
+                && col >= ui.doc_hscroll
+                && doc_inner.height > 0
+                && doc_inner.width > gutter
+            {
                 let y = doc_inner.y + (row - ui.doc_scroll) as u16;
                 if y < doc_inner.y + doc_inner.height {
                     let available = doc_inner.width - gutter;
-                    let x = doc_inner.x + gutter + (col as u16).min(available - 1);
+                    let x =
+                        doc_inner.x + gutter + ((col - ui.doc_hscroll) as u16).min(available - 1);
                     frame.set_cursor_position((x, y));
                 }
             }

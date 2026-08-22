@@ -220,7 +220,10 @@ it's holding.
 - **No word-wrap**: long lines are clipped at the pane edge rather than
   wrapped, so the document cursor can address a stable line index for
   checkbox toggling. Word-wrap is a reasonable follow-up but needs a
-  cursor model that survives reflow.
+  cursor model that survives reflow. Edit mode's raw-source view is the
+  one exception — it horizontally scrolls to follow the cursor past the
+  right edge (see `UiState::doc_hscroll`) — but the normal Obsidian-style
+  and plain-text Normal-mode views still just clip.
 - **Editor starts at the top of the file for Markdown documents**: the
   opening cursor row now matches the line you were viewing for plain-text/
   unknown files, but Markdown's Obsidian-style rendering doesn't keep a
@@ -263,6 +266,9 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Sync the editor's opening cursor position to the line you were
       viewing, for plain-text/unknown files (Markdown's Obsidian-style
       rendering doesn't preserve a 1:1 row mapping — see Roadmap)
+- [x] Horizontal scroll for the Edit-mode cursor locator: a column past
+      the pane's right edge now scrolls the raw-source view instead of
+      clamping the cursor to the last visible column
 - [x] Line numbers in the Document pane's gutter
 - [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
       and a Highlight-vs-Bar current-line indicator
@@ -278,11 +284,6 @@ as part of any change that adds/fixes user-facing behavior.
       reset to `[theme] name`'s configured value and `Highlight` on
       restart
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
-- [ ] Horizontal scroll for the Edit-mode cursor locator: a column past
-      the pane's right edge is currently clamped to the last visible
-      column rather than scrolling the view (same root cause as the
-      no-word-wrap limitation above) — also affects how far a selection
-      can be seen once it runs past the right edge
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
 - [ ] Recursive/global search across the workspace
 - [ ] Config/theme hot-reload without restarting tmr
@@ -323,8 +324,10 @@ logic are all plain functions/structs testable in isolation:
   checkbox toggling (index-based, nested lists, no-trailing-newline files).
 - `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
   Shift-selection extend/normalize/delete, select-all, cursor-row seeking),
-  color parsing, and Markdown-AST-to-terminal-lines rendering (task index
-  tracking, image fallback, gutter width, and the selection-highlight
-  span-splitting logic), and the `h` popup's query-filtering logic.
+  color parsing, Markdown-AST-to-terminal-lines rendering (task index
+  tracking, image fallback, gutter width, the selection-highlight
+  span-splitting logic, and the horizontal-scroll character-trimming
+  logic), `UiState`'s horizontal-scroll clamping, and the `h` popup's
+  query-filtering logic.
 
 Run everything with `cargo test --workspace`.

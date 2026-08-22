@@ -159,6 +159,11 @@ pub struct UiState {
     pub selected: usize,
     pub doc_cursor: usize,
     pub doc_scroll: usize,
+    /// Horizontal scroll offset (in characters) for the Edit-mode raw-
+    /// source view — mirrors `doc_scroll`'s vertical role, but for
+    /// columns. Always `0` outside Edit mode, where there's no per-line
+    /// column position to track (see `lib.rs::run_loop`).
+    pub doc_hscroll: usize,
     pub editor: Option<Editor>,
     pub status: Option<(String, StatusLevel)>,
     pub rendered: Vec<RenderedLine>,
@@ -181,6 +186,7 @@ impl Default for UiState {
             selected: 0,
             doc_cursor: 0,
             doc_scroll: 0,
+            doc_hscroll: 0,
             editor: None,
             status: None,
             rendered: Vec::new(),
@@ -211,5 +217,53 @@ impl UiState {
         } else if self.doc_cursor >= self.doc_scroll + height {
             self.doc_scroll = self.doc_cursor - height + 1;
         }
+    }
+
+    /// Keeps a live cursor column within a viewport of `width` visible
+    /// columns, the same way `ensure_doc_visible` does for rows. Called
+    /// only while in Edit mode (see `lib.rs::run_loop`); `col` is the
+    /// editor's live cursor column.
+    pub fn ensure_doc_hscroll(&mut self, col: usize, width: usize) {
+        if width == 0 {
+            return;
+        }
+        if col < self.doc_hscroll {
+            self.doc_hscroll = col;
+        } else if col >= self.doc_hscroll + width {
+            self.doc_hscroll = col - width + 1;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ensure_doc_hscroll_scrolls_right_when_cursor_passes_the_edge() {
+        let mut ui = UiState::default();
+        ui.ensure_doc_hscroll(25, 20);
+        assert_eq!(ui.doc_hscroll, 6);
+        assert!(25 >= ui.doc_hscroll && 25 < ui.doc_hscroll + 20);
+    }
+
+    #[test]
+    fn ensure_doc_hscroll_scrolls_left_when_cursor_moves_before_the_view() {
+        let mut ui = UiState {
+            doc_hscroll: 10,
+            ..UiState::default()
+        };
+        ui.ensure_doc_hscroll(3, 20);
+        assert_eq!(ui.doc_hscroll, 3);
+    }
+
+    #[test]
+    fn ensure_doc_hscroll_is_noop_for_a_column_already_in_view() {
+        let mut ui = UiState {
+            doc_hscroll: 5,
+            ..UiState::default()
+        };
+        ui.ensure_doc_hscroll(10, 20);
+        assert_eq!(ui.doc_hscroll, 5);
     }
 }
