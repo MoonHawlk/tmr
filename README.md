@@ -9,14 +9,14 @@ Markdown notes — a small productivity engine for text in the terminal,
 with Markdown as its first supported format.
 
 ```
-+ FILES ---------------------++ DOCUMENT ------------------------------------+
-| sub/                       || # Welcome                                    |
-| note1.md                   || This is a test note with emphasis, inline    |
-| note2.md                   || code, and a link.                            |
-|                            || ## Tasks                                     |
-|                            || [ ] first task                               |
-|                            || [x] second task                              |
-+----------------------------++----------------------------------------------+
++ FILES ---------------------++ DOCUMENT ---------------------------------------+
+| sub/                       || # Welcome                                       |
+| note1.md                   || This is a test note with emphasis, inline       |
+| note2.md                   || code, and a link.                               |
+|                            || ## Tasks                                        |
+|                            || [ ] first task                                  |
+|                            || [x] second task                                 |
++----------------------------++-------------------------------------------------+
 + STATUS -----------------------------------------------------------------------+
 | note1.md  tab focus · enter open/edit · space toggle · / search · q quit      |
 +-------------------------------------------------------------------------------+
