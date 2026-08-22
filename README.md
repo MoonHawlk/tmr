@@ -290,6 +290,17 @@ as part of any change that adds/fixes user-facing behavior.
       `ctrl+x` in Edit mode, via an OSC 52 terminal escape sequence — no
       new dependency, and it works over SSH/tmux where a native clipboard
       API has no path back to the desktop)
+- [ ] Make a setup .sh file, to quick install and prepare the enviroment to work.
+- [ ] Make a debbug .sh, to allow quick inspection
+- [x] (BUG) After some command, the status bar, changes, staying static till another command is provided.
+      This is not an expected situation. After any new status, if the user does not make any more commands,
+      the status should be reset, and displayed the default "helper" bar. — fixed: transient status
+      messages now carry a timestamp and auto-revert to the default helper bar after a few seconds
+      (`UiState::expire_status`, `crates/tui/src/lib.rs::run_loop`).
+- [ ] Add a new "config" possibility, name timer, showing the current time at the top of the TUI, between the bars.
+- [ ] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
+- [ ] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
+      a mini-preview of a calender with the current month adjusted and aligned.
 - [ ] Double-click/word-level selection
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)

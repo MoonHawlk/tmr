@@ -77,6 +77,11 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
     }
 
     loop {
+        // A transient status message (e.g. "Saved") reverts to the default
+        // helper bar on its own after `state::STATUS_TTL`, even with no
+        // further keypress — see `UiState::expire_status`.
+        ui.expire_status();
+
         // Recomputed every iteration (all cheap: a handful of hex-string
         // parses, and small-map/plain-field reads) rather than once
         // outside the loop, since the Settings window can change
@@ -95,6 +100,11 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
             .any(|w| w.is_enabled() && w.tick_interval().is_some());
         let timeout = if has_ticking_widget {
             Duration::from_millis(500)
+        } else if ui.status.is_some() {
+            // A status message is pending expiry: poll periodically instead
+            // of blocking indefinitely, so it gets cleared (and the bar
+            // redrawn) close to `STATUS_TTL` even if the user is idle.
+            Duration::from_millis(250)
         } else {
             // No widget needs periodic redraws: block indefinitely on the
             // next terminal event rather than polling.

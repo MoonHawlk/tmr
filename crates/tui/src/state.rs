@@ -1,6 +1,14 @@
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 use tmr_core::theme::Theme;
+
+/// How long a transient status message (e.g. "Saved", "Deleted") stays on
+/// screen before the status bar reverts to the default helper text on its
+/// own, with no further keypress required. See `UiState::status_expired`
+/// and `lib.rs::run_loop`, which polls at a short interval while a status
+/// is pending so the revert happens close to on time.
+pub const STATUS_TTL: Duration = Duration::from_secs(4);
 
 use crate::editor::Editor;
 use crate::markdown_view::RenderedLine;
@@ -198,7 +206,11 @@ pub struct UiState {
     /// column position to track (see `lib.rs::run_loop`).
     pub doc_hscroll: usize,
     pub editor: Option<Editor>,
-    pub status: Option<(String, StatusLevel)>,
+    /// A transient status message, its severity, and when it was set — the
+    /// timestamp lets `status_expired` revert to the default helper bar
+    /// after `STATUS_TTL` even if the user issues no further command (see
+    /// `lib.rs::run_loop`).
+    pub status: Option<(String, StatusLevel, Instant)>,
     pub rendered: Vec<RenderedLine>,
     pub search_matches: Vec<usize>,
     pub theme_choice: ThemeChoice,
@@ -240,11 +252,24 @@ impl Default for UiState {
 
 impl UiState {
     pub fn set_status(&mut self, msg: impl Into<String>, level: StatusLevel) {
-        self.status = Some((msg.into(), level));
+        self.status = Some((msg.into(), level, Instant::now()));
     }
 
     pub fn clear_status(&mut self) {
         self.status = None;
+    }
+
+    /// Clears a status message once it's older than `STATUS_TTL`, so the
+    /// status bar reverts to the default helper text on its own rather than
+    /// staying stuck until the next command. Called every loop iteration in
+    /// `lib.rs::run_loop`, including on the idle-poll timeout that fires
+    /// while a status is pending.
+    pub fn expire_status(&mut self) {
+        if let Some((_, _, set_at)) = &self.status {
+            if set_at.elapsed() >= STATUS_TTL {
+                self.status = None;
+            }
+        }
     }
 
     /// Keeps `doc_cursor` within the visible window, scrolling as needed.
@@ -278,6 +303,26 @@ impl UiState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expire_status_clears_a_message_older_than_the_ttl() {
+        let mut ui = UiState::default();
+        ui.status = Some((
+            "Saved".to_string(),
+            StatusLevel::Success,
+            Instant::now() - STATUS_TTL - Duration::from_millis(1),
+        ));
+        ui.expire_status();
+        assert!(ui.status.is_none());
+    }
+
+    #[test]
+    fn expire_status_keeps_a_fresh_message() {
+        let mut ui = UiState::default();
+        ui.set_status("Saved", StatusLevel::Success);
+        ui.expire_status();
+        assert!(ui.status.is_some());
+    }
 
     #[test]
     fn ensure_doc_hscroll_scrolls_right_when_cursor_passes_the_edge() {

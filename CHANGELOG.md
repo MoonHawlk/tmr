@@ -7,6 +7,16 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ## [Unreleased]
 
+### Fixed
+
+- Status bar no longer gets stuck on a transient message (e.g. "Saved",
+  "Deleted") until the next command — it now reverts to the default helper
+  bar on its own after a few seconds. `UiState::status` carries the
+  `Instant` it was set, `UiState::expire_status` clears it once stale, and
+  `lib.rs::run_loop` polls at a short interval while a status is pending so
+  the revert happens close to on time even when idle. See
+  `crates/tui/src/state.rs`.
+
 ### Added
 
 - Config/theme hot-reload: `ctrl+r` (`reload`) now re-reads `config.toml`

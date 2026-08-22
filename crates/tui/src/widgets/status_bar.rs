@@ -74,7 +74,7 @@ pub fn draw(
             ),
         ]),
         Mode::Normal => {
-            if let Some((msg, level)) = &ui.status {
+            if let Some((msg, level, _)) = &ui.status {
                 let color = match level {
                     StatusLevel::Info => palette.fg,
                     StatusLevel::Success => palette.success,
