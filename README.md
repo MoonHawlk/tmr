@@ -283,70 +283,73 @@ it's holding.
 
 ## TODO
 
-Tracked here as a plain checklist (open it in tmr itself — `tmr .` from
-the repo root and open `README.md` — to see the checkbox rendering these
-items describe). Update this list, and [`CHANGELOG.md`](CHANGELOG.md),
-as part of any change that adds/fixes user-facing behavior.
+Tracked here as a plain checklist. Items are grouped by priority and
+purpose rather than implementation order.
 
-- [x] Obsidian-style Markdown rendering, `.md`-only (per-element glyphs,
-      hidden raw syntax, heading hierarchy)
-- [x] Plain-text rendering path for non-Markdown files
-- [x] `[ui] show_hidden` config option actually wired to the file listing
-- [x] Edit-mode cursor locator: raw source view, auto-scroll, a real
-      terminal caret, and a `Ln X, Col Y` status readout
-- [x] `h` command-reference popup (searchable)
-- [x] Scrolling/keyboard navigation inside the `h` popup (`up`/`down`
-      move the highlighted row, auto-scrolling on short terminals)
-- [x] Sync the editor's opening cursor position to the line you were
-      viewing, for plain-text/unknown files (Markdown's Obsidian-style
-      rendering doesn't preserve a 1:1 row mapping — see Roadmap)
-- [x] Horizontal scroll for the Edit-mode cursor locator: a column past
-      the pane's right edge now scrolls the raw-source view instead of
-      clamping the cursor to the last visible column
-- [x] Persist Settings-window choices (theme, line indicator) to
-      `config.toml` — previously session-only, resetting on restart
-- [x] Line numbers in the Document pane's gutter
-- [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
-      and a Highlight-vs-Bar current-line indicator
-- [x] Shift+navigation text selection in Edit mode (select, then
-      Backspace/Delete/type to remove or replace it)
-- [x] Select-all (`Ctrl+A`)
-- [x] Copy/cut the current selection to the system clipboard (`ctrl+c`/
-      `ctrl+x` in Edit mode, via an OSC 52 terminal escape sequence — no
-      new dependency, and it works over SSH/tmux where a native clipboard
-      API has no path back to the desktop)
-- [x] Make a setup .sh file, to quick install and prepare the enviroment to work.
-- [x] Make a debbug .sh, to allow quick inspection
-- [x] (BUG) After some command, the status bar, changes, staying static till another command is provided.
-      This is not an expected situation. After any new status, if the user does not make any more commands,
-      the status should be reset, and displayed the default "helper" bar. — fixed: transient status
-      messages now carry a timestamp and auto-revert to the default helper bar after a few seconds
-      (`UiState::expire_status`, `crates/tui/src/lib.rs::run_loop`).
-- [x] Add a new "config" possibility, name timer, showing the current time at the top of the TUI, between the bars.
-      — `[ui] timer = true`: a thin, live-updating UTC clock bar above the Files/Document panes
-      (`crates/tui/src/widgets/timer_bar.rs`, `tmr_core::datetime`).
-- [x] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
-      — new `[ui] border = "double"` style: double box-drawing lines (`╔═╗`/`║`/`╚═╝`)
-      (`crates/tui/src/layout.rs::DOUBLE_BORDER`).
-- [x] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
-      a mini-preview of a calender with the current month adjusted and aligned.
-      — a popup with a weekday-aligned month grid, today highlighted, `left`/`right` to change month
-      (`crates/tui/src/calendar.rs`, `tmr_core::datetime`).
+Update this list, and `CHANGELOG.md`, as part of any change that adds or
+fixes user-facing behavior.
+
+### Bugs / Fixes
+
+- [ ] (BUG) Make the newly available border styles selectable from the Settings window.
+
+### Core UX
+
 - [ ] Double-click/word-level selection
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
-- [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
-- [ ] Recursive/global search across the workspace
-- [x] Config/theme hot-reload without restarting tmr — `ctrl+r` (`reload`)
-      now re-reads `config.toml` (theme, keymap overrides, editor tab
-      width, ui border/line-indicator) in addition to its existing
-      directory-listing refresh; workspace directory and addon/widget
-      registration remain startup-only
-- [ ] Syntax highlighting inside fenced code blocks
-- [ ] Mouse support (click to select/open, scroll, drag-to-select text)
 - [ ] Undo/redo in the built-in editor
+- [ ] Mouse support (click to select/open, scroll, drag-to-select text)
+
+### Search
+
+- [ ] Recursive/global search across the workspace
+
+### Markdown
+
+- [ ] Syntax highlighting inside fenced code blocks
+
+### Images
+
+- [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
+
+### Formats
+
 - [ ] Rendering support for a second document format (TXT/JSON/YAML), to
       exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
 
+### Productivity
+
+- [ ] Quick-TODO window backed by a persistent task file.
+
+      The Quick-TODO should provide a minimal interface focused on creating,
+      checking and organizing simple tasks without requiring a Markdown
+      document to be opened.
+
+      Tasks should be stored persistently so they can later be searched,
+      filtered and reused by other TMR features.
+
+      Add an application-level export action (`Ctrl+E`) that asks for
+      confirmation and exports the current and historical tasks to `.tsv`.
+
+### Customization
+
+- [ ] Expand the configuration system with additional TUI customization,
+      including ASCII icons, font-related terminal options, highlights and
+      other visual properties.
+
+      All supported options should remain configurable without modifying
+      the source code and, where appropriate, should be exposed through
+      the Settings window.
+
+### Roadmap / Product Direction
+
+- [ ] Add a dedicated section to the README describing future features
+      and the long-term purpose of TMR.
+
+      This section should distinguish implemented functionality, planned
+      functionality and experimental ideas, keeping the project's scope
+      clear as it grows.
+      
 ## Development
 
 ```sh
