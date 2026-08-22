@@ -444,3 +444,11 @@ logic are all plain functions/structs testable in isolation:
   the `h` popup's query-filtering logic.
 
 Run everything with `cargo test --workspace`.
+
+## License
+
+[PolyForm Noncommercial License 1.0.0](LICENSE) — free for any
+noncommercial purpose (personal use, research, hobby projects,
+nonprofits, educational/government institutions); commercial use
+requires a separate agreement with the licensor. See the
+[`LICENSE`](LICENSE) file for the full terms.

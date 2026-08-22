@@ -7,6 +7,14 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ## [Unreleased]
 
+### Changed
+
+- Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE)
+  (was MIT): free for any noncommercial purpose, commercial use requires
+  a separate agreement. `Cargo.toml`'s `license` field now reads
+  `PolyForm-Noncommercial-1.0.0` (a valid SPDX identifier) across the
+  whole workspace via `[workspace.package]`.
+
 ### Added
 
 - A Quick-TODO window (`ctrl+t`, new default binding): a minimal task
