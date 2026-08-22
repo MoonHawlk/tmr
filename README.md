@@ -58,10 +58,11 @@ tmr ~/notes
 - A Settings window (`s`) for live interface customization: pick a color
   theme (`Default` / `Dark` / `Light (grey)`), a pane border style
   (`ASCII` / `Rounded` / `Double` / `None`), how the current line is
-  marked (full-line `Highlight` or a `Bar` gutter marker), and whether the
-  Timer bar is shown (`On`/`Off`) — no restart needed, and all four
-  choices are persisted to `config.toml` as you change them, so they
-  survive a restart too.
+  marked (full-line `Highlight` or a `Bar` gutter marker), whether the
+  Timer bar is shown (`On`/`Off`), and whether `.json` files get syntax
+  highlighting (`On`/`Off`) — no restart needed, and all five choices are
+  persisted to `config.toml` as you change them, so they survive a
+  restart too.
 - An optional Timer bar (`[ui] timer = true`, or toggle it live from the
   Settings window): a thin strip at the very top of the TUI, above the
   Files/Document panes, showing the current time (UTC), updated live once
@@ -70,6 +71,12 @@ tmr ~/notes
   default `"ascii"`, `"rounded"`, and `"none"` — double box-drawing lines
   (`╔═╗`/`║`/`╚═╝`) for a denser, more application-panel look than the
   plain `+---+` terminal sketch.
+- Optional JSON syntax highlighting (`[ui] json_highlight = true`, or
+  toggle it live from the Settings window): `.json` files get keys,
+  strings, numbers, and `true`/`false`/`null` colored distinctly instead
+  of being shown as plain text. Off by default, so a `.json` file renders
+  exactly as it always has unless you opt in — see
+  `crates/tui/src/json_view.rs`.
 - A Calendar window (`alt+c`): a small popup with a mini month-preview
   grid, aligned like a standard calendar (weekday columns, today's day
   highlighted). `left`/`right` moves to the adjacent month, `esc` closes.
@@ -156,7 +163,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+a`    | Edit mode only: select the entire document              |
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
-| `s`         | Open the Settings window (theme, border style, line indicator, timer bar); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
+| `s`         | Open the Settings window (theme, border style, line indicator, timer bar, JSON highlighting); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
 | `q`         | Quit                                                 |
 
@@ -193,8 +200,9 @@ from `light`'s blue/lavender tint. Any other name is looked up at
 pick `Dark`/`Light (grey)` from the in-app Settings window (`s`) instead —
 see [Keybindings](#keybindings); that switch is live and, as of the
 choice you make, also written straight back to `[theme] name` in
-`config.toml` (along with `[ui] border`, `[ui] line_indicator` and
-`[ui] timer`) — see `tmr_core::config::persist_settings`, which edits just those keys via
+`config.toml` (along with `[ui] border`, `[ui] line_indicator`,
+`[ui] timer` and `[ui] json_highlight`) — see
+`tmr_core::config::persist_settings`, which edits just those keys via
 `toml_edit` so the rest of your file (comments included) is left alone.
 
 ## Architecture
@@ -240,15 +248,22 @@ WASM-based loader could sit behind without changing how addons are
 written. One example ships (`StatsAddon`, a session file-op counter).
 
 **Formats.** `tmr_core::document::DocumentFormat` distinguishes Markdown /
-plain text / unknown by extension, and the TUI already dispatches on it
+JSON / plain text / unknown by extension, and the TUI dispatches on it
 (`crates/tui/src/input.rs::refresh_rendered`): `.md` gets the full
-Obsidian-style rendering via `tmr-markdown`, everything else falls
-through to `markdown_view::render_plain_text` — untouched text, no
-parsing. Adding a third rendered format (TXT/JSON/YAML with its own
-styling, rather than the current plain-text catch-all) means adding a
-sibling to the `tmr-markdown` crate and another arm in that same `match`
-— the core's document/save/open flow already doesn't care what format
-it's holding.
+Obsidian-style rendering via `tmr-markdown`, `.json` gets a syntax-
+highlighted rendering via `crates/tui/src/json_view.rs` **if** `[ui]
+json_highlight` is on (off by default — falls through to the plain-text
+path otherwise), and everything else falls through to
+`markdown_view::render_plain_text` — untouched text, no parsing.
+`json_view` is a self-contained line-local tokenizer rather than a
+`tmr-markdown`-style AST crate: unlike Markdown, a JSON line's styling
+doesn't depend on any block-level structure, so a per-line token scan is
+enough and there was no renderer-agnostic tree worth building for it. A
+format that *does* need block structure (YAML with nested mappings, say)
+is still the case the `tmr-markdown`-sibling-crate pattern was written
+for — see the `DocumentFormat`/`refresh_rendered` match either way; the
+core's document/save/open flow already doesn't care what format it's
+holding.
 
 ## Roadmap / known limitations
 
@@ -318,9 +333,11 @@ fixes user-facing behavior.
 
 ### Formats
 
-- [ ] Rendering support for a second document format (TXT/JSON/YAML), to
+- [x] Rendering support for a second document format (TXT/JSON/YAML), to
       exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
       ONLY ALLOW THIS IF THE USED SET AS POSSIBLE AT CONFIG WINDOW
+      — JSON: `[ui] json_highlight`, off by default, toggle in the Settings window or config.toml
+      (`crates/tui/src/json_view.rs`, `DocumentFormat::Json`). TXT/YAML remain open.
 
 ### Productivity
 

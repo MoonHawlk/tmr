@@ -78,6 +78,7 @@ pub fn draw(
     border: BorderStyle,
     line_indicator: LineIndicatorStyle,
     timer: bool,
+    json_highlight: bool,
     row: usize,
 ) {
     let popup = centered_rect(64, 40, area);
@@ -95,6 +96,7 @@ pub fn draw(
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
@@ -146,5 +148,16 @@ pub fn draw(
     frame.render_widget(
         Paragraph::new(option_row("Timer bar", &timer_options, row == 3, palette)),
         rows[3],
+    );
+
+    let json_options = [("On", json_highlight), ("Off", !json_highlight)];
+    frame.render_widget(
+        Paragraph::new(option_row(
+            "JSON highlighting",
+            &json_options,
+            row == 4,
+            palette,
+        )),
+        rows[4],
     );
 }

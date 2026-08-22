@@ -9,6 +9,7 @@ use tmr_core::input::{Key, KeyCode};
 
 use crate::editor::Editor;
 use crate::image_backend::ImageCapability;
+use crate::json_view;
 use crate::markdown_view;
 use crate::state::{ConfirmAction, Focus, Mode, PromptKind, SearchScope, StatusLevel, UiState};
 use crate::theme::Palette;
@@ -58,7 +59,10 @@ pub fn refresh_rendered(
                 let blocks = tmr_markdown::parse(&content);
                 markdown_view::render(&blocks, palette, image_cap, &base_dir, width)
             }
-            DocumentFormat::PlainText | DocumentFormat::Unknown => {
+            DocumentFormat::Json if app.config.ui.json_highlight => {
+                json_view::render(&content, palette)
+            }
+            DocumentFormat::Json | DocumentFormat::PlainText | DocumentFormat::Unknown => {
                 markdown_view::render_plain_text(&content, palette)
             }
         }
@@ -313,14 +317,18 @@ fn reload_config(app: &mut App, ui: &mut UiState) -> Option<String> {
 
 /// `ui.doc_cursor` only maps 1:1 onto a raw source line for formats whose
 /// Normal-mode view *is* the raw source, one line per `RenderedLine`
-/// (`render_plain_text` — see `refresh_rendered`'s doc comment). Markdown's
+/// (`render_plain_text`/`json_view::render` — see `refresh_rendered`'s doc
+/// comment; JSON qualifies either way, since both its highlighted and
+/// plain-text-fallback renderings are one-line-per-source-line). Markdown's
 /// Obsidian-style rendering doesn't preserve that mapping (headings,
 /// blank-line handling, etc. can shift rows), so there's no correct row to
 /// seed the editor with there yet; `None` leaves the editor's cursor where
 /// it already was, matching prior behavior for that format.
 fn viewed_source_row(app: &App, ui: &UiState) -> Option<usize> {
     match app.document()?.format {
-        DocumentFormat::PlainText | DocumentFormat::Unknown => Some(ui.doc_cursor),
+        DocumentFormat::PlainText | DocumentFormat::Unknown | DocumentFormat::Json => {
+            Some(ui.doc_cursor)
+        }
         DocumentFormat::Markdown => None,
     }
 }
@@ -579,17 +587,21 @@ fn handle_help_key(ui: &mut UiState, key: Key, keymap: &tmr_core::keymap::Keymap
 }
 
 /// Row 0 is the Theme picker, row 1 the Border style picker, row 2 the
-/// Line-indicator picker, row 3 the Timer bar toggle. Changing the theme
-/// takes effect immediately: it updates `app.theme` and re-renders the
-/// cached document view (`ui.rendered` bakes in colors at render time,
-/// unlike the borders/status-bar/popups, which read the palette live every
-/// frame — see `lib.rs::run_loop`'s per-iteration `Palette::from_theme`).
-/// Border and Timer both flip `app.config.ui.*` directly — the TUI already
-/// reads those fields live every frame (`layout::styled_block`,
-/// `ui.rs::draw`'s `compute_panes` call), so there's no separate
-/// `UiState` mirror to keep in sync the way Theme and Line indicator need
-/// one.
-const SETTINGS_ROW_COUNT: usize = 4;
+/// Line-indicator picker, row 3 the Timer bar toggle, row 4 the JSON
+/// highlighting toggle. Changing the theme takes effect immediately: it
+/// updates `app.theme` and re-renders the cached document view
+/// (`ui.rendered` bakes in colors at render time, unlike the borders/
+/// status-bar/popups, which read the palette live every frame — see
+/// `lib.rs::run_loop`'s per-iteration `Palette::from_theme`). Border and
+/// Timer both flip `app.config.ui.*` directly — the TUI already reads
+/// those fields live every frame (`layout::styled_block`, `ui.rs::draw`'s
+/// `compute_panes` call), so there's no separate `UiState` mirror to keep
+/// in sync the way Theme and Line indicator need one. JSON highlighting
+/// also flips `app.config.ui.*` directly, but — like Theme — additionally
+/// needs a `refresh_rendered` call, since it changes what `ui.rendered`
+/// holds for a currently-open `.json` document rather than just how a
+/// frame is drawn around it.
+const SETTINGS_ROW_COUNT: usize = 5;
 
 fn handle_settings_key(
     ui: &mut UiState,
@@ -634,7 +646,11 @@ fn handle_settings_key(
                     };
                 }
                 2 => ui.line_indicator = ui.line_indicator.toggled(),
-                _ => app.config.ui.timer = !app.config.ui.timer,
+                3 => app.config.ui.timer = !app.config.ui.timer,
+                _ => {
+                    app.config.ui.json_highlight = !app.config.ui.json_highlight;
+                    refresh_rendered(ui, app, &Palette::from_theme(&app.theme), image_cap, width);
+                }
             }
             persist_settings(ui, app);
         }
@@ -661,6 +677,7 @@ fn persist_settings(ui: &mut UiState, app: &App) {
         indicator,
         app.config.ui.timer,
         app.config.ui.border.config_str(),
+        app.config.ui.json_highlight,
     ) {
         ui.set_status(
             format!("Settings applied but not saved: {e}"),

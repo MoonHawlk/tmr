@@ -95,6 +95,12 @@ pub struct UiConfig {
     /// edge — sitting between those and the Status bar. Off by default so
     /// the default screen matches the README's layout diagram exactly.
     pub timer: bool,
+    /// Syntax-highlights `.json` files (keys, strings, numbers,
+    /// true/false/null, punctuation) instead of showing them as plain
+    /// text. Off by default — opt-in via `config.toml` or the Settings
+    /// window, per the same "only if the user turns it on" rule the Timer
+    /// bar follows. See `crates/tui/src/json_view.rs`.
+    pub json_highlight: bool,
 }
 
 impl Default for UiConfig {
@@ -104,6 +110,7 @@ impl Default for UiConfig {
             show_hidden: false,
             line_indicator: "highlight".to_string(),
             timer: false,
+            json_highlight: false,
         }
     }
 }
@@ -168,20 +175,23 @@ pub fn default_config_path() -> Option<PathBuf> {
     default_config_dir().map(|d| d.join("config.toml"))
 }
 
-/// Writes `theme.name`, `ui.line_indicator`, `ui.timer` and `ui.border`
-/// into the config file at `path`, creating it (and its parent directory)
-/// if it doesn't exist yet, while leaving every other key's value,
-/// formatting and comments untouched — used by the Settings window to
-/// persist its live-editable choices without clobbering the rest of a
-/// hand-edited `config.toml`. A `toml_edit::DocumentMut` (format-
-/// preserving, unlike this module's `toml::from_str`/plain-struct-based
-/// loading) is what makes that possible.
+/// Writes `theme.name`, `ui.line_indicator`, `ui.timer`, `ui.border` and
+/// `ui.json_highlight` into the config file at `path`, creating it (and
+/// its parent directory) if it doesn't exist yet, while leaving every
+/// other key's value, formatting and comments untouched — used by the
+/// Settings window to persist its live-editable choices without
+/// clobbering the rest of a hand-edited `config.toml`. A
+/// `toml_edit::DocumentMut` (format-preserving, unlike this module's
+/// `toml::from_str`/plain-struct-based loading) is what makes that
+/// possible.
+#[allow(clippy::too_many_arguments)]
 pub fn persist_settings(
     path: &Path,
     theme_name: &str,
     line_indicator: &str,
     timer: bool,
     border: &str,
+    json_highlight: bool,
 ) -> io::Result<()> {
     let existing = std::fs::read_to_string(path).unwrap_or_default();
     let mut doc = existing
@@ -191,6 +201,7 @@ pub fn persist_settings(
     doc["ui"]["line_indicator"] = toml_edit::value(line_indicator);
     doc["ui"]["timer"] = toml_edit::value(timer);
     doc["ui"]["border"] = toml_edit::value(border);
+    doc["ui"]["json_highlight"] = toml_edit::value(json_highlight);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -266,12 +277,13 @@ mod tests {
     fn persist_settings_creates_a_missing_file_and_its_parent_dir() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("nested").join("config.toml");
-        persist_settings(&path, "dark", "bar", true, "double").unwrap();
+        persist_settings(&path, "dark", "bar", true, "double", true).unwrap();
         let result = Config::load(Some(&path));
         assert_eq!(result.config.theme.name, "dark");
         assert_eq!(result.config.ui.line_indicator, "bar");
         assert!(result.config.ui.timer);
         assert_eq!(result.config.ui.border, BorderStyle::Double);
+        assert!(result.config.ui.json_highlight);
     }
 
     #[test]
@@ -284,7 +296,7 @@ mod tests {
         )
         .unwrap();
 
-        persist_settings(&path, "dark", "bar", true, "double").unwrap();
+        persist_settings(&path, "dark", "bar", true, "double", true).unwrap();
 
         let raw = std::fs::read_to_string(&path).unwrap();
         assert!(raw.contains("# a comment worth keeping"));

@@ -9,6 +9,19 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Optional JSON syntax highlighting: `[ui] json_highlight = true` (or a
+  new "JSON highlighting" row in the Settings window) colors `.json`
+  files' keys, strings, numbers, and `true`/`false`/`null` distinctly
+  instead of showing them as plain text — off by default, so a `.json`
+  file's rendering is unchanged unless you opt in. `DocumentFormat`
+  gained a `Json` variant; the highlighter itself
+  (`crates/tui/src/json_view.rs`) is a self-contained, dependency-free
+  line-local tokenizer rather than a `tmr-markdown`-style AST crate —
+  JSON's styling doesn't depend on block structure across lines the way
+  Markdown's does, so a per-line token scan (preserving the source
+  exactly, never reformatting) is enough. Malformed JSON degrades to
+  approximate coloring rather than an error, matching the Markdown
+  parser's tolerant style.
 - The Settings window (`s`) can now toggle the Timer bar on/off live, as a
   third row alongside Theme and Line indicator — `left`/`right`/`enter`
   flips it, and the choice persists to `[ui] timer` in `config.toml` the

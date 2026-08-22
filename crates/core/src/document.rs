@@ -1,12 +1,16 @@
 use std::path::{Path, PathBuf};
 
-/// The format of a document. Only `Markdown` is fully rendered today; the
-/// others exist so the rest of the engine (document model, save/open flow,
+/// The format of a document. `Markdown` is fully rendered; `Json` gets an
+/// optional syntax-highlighted rendering, gated behind `[ui]
+/// json_highlight` (see `crates/tui/src/input.rs::refresh_rendered`) so a
+/// `.json` file renders as plain text unless the user opts in. The rest
+/// exist so the rest of the engine (document model, save/open flow,
 /// commands) never has to special-case "just markdown" and can grow new
 /// formats without touching this type's callers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DocumentFormat {
     Markdown,
+    Json,
     PlainText,
     Unknown,
 }
@@ -20,6 +24,7 @@ impl DocumentFormat {
             .as_deref()
         {
             Some("md") | Some("markdown") => DocumentFormat::Markdown,
+            Some("json") => DocumentFormat::Json,
             Some("txt") => DocumentFormat::PlainText,
             _ => DocumentFormat::Unknown,
         }
@@ -86,6 +91,14 @@ mod tests {
         assert_eq!(
             DocumentFormat::from_path(Path::new("notes/todo.md")),
             DocumentFormat::Markdown
+        );
+    }
+
+    #[test]
+    fn detects_json_format() {
+        assert_eq!(
+            DocumentFormat::from_path(Path::new("data.json")),
+            DocumentFormat::Json
         );
     }
 

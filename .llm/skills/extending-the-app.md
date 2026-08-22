@@ -93,7 +93,7 @@ works until you've actually threaded it through `input.rs`.
 
 ## Adding a new document format
 
-Only Markdown gets real rendering today; everything else (`.txt`,
+Markdown and JSON get real rendering today; everything else (`.txt`,
 unrecognized extensions) falls through to a plain-text path. The seam:
 
 1. `tmr_core::document::DocumentFormat` (`crates/core/src/document.rs`)
@@ -102,26 +102,40 @@ unrecognized extensions) falls through to a plain-text path. The seam:
 2. Everything in `tmr-core` past that point is format-agnostic — `App`,
    `Command::OpenFile`/`Save`, `fs_ops` all just move `String` content
    around regardless of format. You don't need to touch them.
-3. The format-specific work is a parser crate analogous to
-   `tmr-markdown`: source text -> some renderer-agnostic structure. It
-   does not need to mirror `tmr-markdown`'s `Block`/`Inline` shape if the
-   format doesn't fit that shape (e.g. a JSON viewer might want a tree of
-   key/value nodes instead) — the only real contract is "produces
-   something `tmr-tui` knows how to turn into `Vec<RenderedLine>`".
+3. The format-specific work does *not* have to mirror `tmr-markdown`'s
+   `Block`/`Inline` AST-crate shape — that pattern earns its keep when a
+   line's styling depends on surrounding block structure (headings, lists,
+   blockquotes nesting). If it doesn't (JSON: each line tokenizes on its
+   own), a plain tokenizer function living directly in `tmr-tui` is
+   simpler and is the precedent now — see `crates/tui/src/json_view.rs`.
+   Either way the only real contract is "produces something `tmr-tui`
+   knows how to turn into `Vec<RenderedLine>`".
 4. In `tmr-tui`, `crates/tui/src/input.rs::refresh_rendered` already
    dispatches on `doc.format`: `DocumentFormat::Markdown` goes through
    `tmr_markdown::parse` + `markdown_view::render` (the Obsidian-style
-   path), everything else goes through `markdown_view::render_plain_text`.
-   Add your variant as a new match arm calling your own parser + a new
-   `render_your_format` function in `markdown_view.rs` (or a sibling
-   module) — following the existing arms is the reference, there's no
+   path), `DocumentFormat::Json` goes through `json_view::render` *only
+   if* `app.config.ui.json_highlight` is set (see point 6), everything
+   else goes through `markdown_view::render_plain_text`. Add your variant
+   as a new match arm calling your own parser + a new `render_your_format`
+   function — following the existing arms is the reference, there's no
    separate format-registry abstraction to learn.
-5. **Keep the "only `.md` gets rich rendering" rule intact** unless
-   explicitly asked to change it: a `.txt` file (or any format without
-   its own render arm) must keep showing exactly what's on disk, never
-   be silently parsed as Markdown — that was a real bug fixed in this
-   codebase's history (see `CHANGELOG.md`'s Unreleased section), don't
-   reintroduce it by adding a fallback that guesses.
+5. **Keep the "only `.md` gets rich rendering by default" rule intact**
+   unless explicitly asked to change it: a `.txt` file (or any format
+   without its own render arm) must keep showing exactly what's on disk,
+   never be silently parsed as Markdown — that was a real bug fixed in
+   this codebase's history (see `CHANGELOG.md`'s Unreleased section),
+   don't reintroduce it by adding a fallback that guesses.
+6. **A new rendered format should ship opt-in**, gated behind a new
+   `[ui]` boolean (`json_highlight` is the precedent) that's `false` by
+   default and exposed as a Settings-window row — see
+   `crates/tui/src/settings.rs` and
+   `crates/tui/src/input.rs::handle_settings_key`/`persist_settings`; also
+   remember to bump `SETTINGS_ROW_COUNT` and extend
+   `tmr_core::config::persist_settings`'s signature (and its callers/
+   tests) with the new field. This was a specific ask when JSON
+   highlighting was added, not an incidental choice — don't default a new
+   format's rich rendering to "on" without checking whether that's still
+   wanted.
 
 ## Adding a Kitty/iTerm2/Sixel image backend
 

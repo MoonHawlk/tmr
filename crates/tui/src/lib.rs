@@ -4,6 +4,7 @@ pub mod editor;
 pub mod help;
 pub mod image_backend;
 pub mod input;
+pub mod json_view;
 pub mod keymap;
 pub mod layout;
 pub mod markdown_view;

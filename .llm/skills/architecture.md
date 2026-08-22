@@ -53,8 +53,9 @@ you're adding a new user-facing operation, add a `Command` variant and an
 - `command.rs` — `Command` enum (the full vocabulary of operations).
 - `events.rs` — `AppEvent` enum (what happened, returned by `dispatch`).
 - `document.rs` — `Document` (path + raw text + dirty flag) and
-  `DocumentFormat` (currently `Markdown` / `PlainText` / `Unknown`,
-  detected by extension — see `extending-the-app.md` for adding formats).
+  `DocumentFormat` (currently `Markdown` / `Json` / `PlainText` /
+  `Unknown`, detected by extension — see `extending-the-app.md` for
+  adding formats).
 - `workspace.rs` — `Workspace` (canonicalized root + `guard()` path
   containment check + `list_dir()`).
 - `fs_ops.rs` — the actual `std::fs` calls: `read_file` (with a 10 MB
@@ -109,12 +110,19 @@ you're adding a new user-facing operation, add a `Command` variant and an
   gets its own glyph/color/weight (see `heading_style`, `bullet_glyph`,
   and the `Blockquote`/`CodeBlock`/task-list arms in `render_block`).
   Also exports `render_plain_text`, the untouched-text path used for
-  every non-Markdown format — `input.rs::refresh_rendered` picks between
-  the two based on `DocumentFormat`, so this rich styling only ever
-  applies to `.md` files. Explicitly does **not** word-wrap — see the
-  module doc comment for why (wrapping would decouple "line index" from
-  "terminal width", which the task-toggle-by-cursor and
-  scroll-follows-cursor logic both depend on).
+  every format without its own rendering (or with it turned off) —
+  `input.rs::refresh_rendered` picks between the arms based on
+  `DocumentFormat`, so this rich styling only ever applies to `.md`
+  files. Explicitly does **not** word-wrap — see the module doc comment
+  for why (wrapping would decouple "line index" from "terminal width",
+  which the task-toggle-by-cursor and scroll-follows-cursor logic both
+  depend on).
+- `json_view.rs` — a line-local JSON tokenizer -> `Vec<RenderedLine>`,
+  used only when `[ui] json_highlight` is on (default off;
+  `refresh_rendered` falls back to `render_plain_text` otherwise). Unlike
+  `markdown_view.rs` it doesn't go through a `Block`/`Inline` AST crate —
+  see `extending-the-app.md`'s "Adding a new document format" for why
+  that's fine here.
 - `image_backend.rs` — capability detection (env vars only, never a
   blocking terminal query) + a Unicode half-block renderer + text
   fallback. See `extending-the-app.md` for adding a Kitty/Sixel backend.

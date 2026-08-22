@@ -108,6 +108,7 @@ pub fn draw(
             app.config.ui.border,
             ui.line_indicator,
             app.config.ui.timer,
+            app.config.ui.json_highlight,
             *row,
         );
     }

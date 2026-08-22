@@ -46,6 +46,16 @@ extension to render richly, add that extension to
 `DocumentFormat::from_path` (`crates/core/src/document.rs`) rather than
 loosening the dispatch — see `extending-the-app.md`.
 
+## "Opening a `.json` file doesn't show any syntax highlighting"
+
+Also intentional: `[ui] json_highlight` is `false` by default (config
+key or the Settings window's "JSON highlighting" row), so `.json` files
+render via the same plain-text path as `.txt` until you opt in. This
+was a deliberate requirement, not an oversight — see the "second
+document format" item in `README.md`'s TODO. Check
+`app.config.ui.json_highlight` (or `[ui] json_highlight` in
+`config.toml`) before assuming `crates/tui/src/json_view.rs` is broken.
+
 ## "Images aren't rendering, just `[image: name.png]`"
 
 Expected unless the terminal advertises truecolor.

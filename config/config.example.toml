@@ -35,6 +35,11 @@ line_indicator = "highlight"
 # the Files/Document panes. Also settable live from the in-app Settings
 # window (`s`), which writes its choice straight back here.
 timer = false
+# Syntax-highlight .json files (keys, strings, numbers, true/false/null,
+# punctuation) instead of showing them as plain text. Off by default —
+# also settable live from the in-app Settings window (`s`), which writes
+# its choice straight back here.
+json_highlight = false
 
 [editor]
 # Number of spaces inserted by Tab in the built-in editor.
