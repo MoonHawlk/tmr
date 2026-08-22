@@ -11,6 +11,7 @@ pub mod markdown_view;
 pub mod settings;
 pub mod state;
 pub mod theme;
+pub mod todo_view;
 pub mod ui;
 pub mod widgets;
 

@@ -10,6 +10,7 @@ pub mod fs_ops;
 pub mod input;
 pub mod keymap;
 pub mod search;
+pub mod tasks;
 pub mod theme;
 pub mod widget;
 pub mod workspace;

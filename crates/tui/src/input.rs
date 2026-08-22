@@ -102,6 +102,9 @@ pub fn handle_key(
         Mode::Calendar { .. } => {
             handle_calendar_key(ui, key);
         }
+        Mode::Todo { .. } => {
+            handle_todo_key(ui, app, key);
+        }
         Mode::Edit => {
             let action = resolved_keymap.get(&key).map(String::as_str);
             if action == Some("save") {
@@ -272,6 +275,15 @@ fn handle_action(
         }
         "calendar" => {
             ui.mode = Mode::Calendar { month_offset: 0 };
+        }
+        "todo" => {
+            ui.mode = Mode::Todo {
+                selected: 0,
+                new_task: None,
+            };
+        }
+        "export_tasks" => {
+            request_task_export(ui);
         }
         _ => {}
     }
@@ -732,6 +744,171 @@ fn handle_confirm_key(
                 }
                 Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
             },
+            ConfirmAction::ExportTasks { path } => match app.dispatch(Command::ExportTasks(path)) {
+                Ok(AppEvent::TasksExported { path }) => ui.set_status(
+                    format!("Exported tasks to {}", path.display()),
+                    StatusLevel::Success,
+                ),
+                Ok(_) => {}
+                Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
+            },
         }
+    }
+}
+
+/// Opens the `Ctrl+E` confirmation dialog for exporting the full task
+/// history to TSV — application-level, so it's available regardless of
+/// focus or whether a document is open, the same as `reload`/`help`/
+/// `settings`/`calendar`. A missing config dir (rare) surfaces as a status
+/// error instead of opening a dialog with nowhere to write to.
+fn request_task_export(ui: &mut UiState) {
+    let Some(path) = tmr_core::config::default_tasks_export_path() else {
+        ui.set_status(
+            "Could not resolve a config directory to export to",
+            StatusLevel::Error,
+        );
+        return;
+    };
+    ui.mode = Mode::Confirm {
+        message: format!("Export tasks to {}? (y/n)", path.display()),
+        action: ConfirmAction::ExportTasks { path },
+    };
+}
+
+/// While composing (`new_task.is_some()`), keys edit that buffer like
+/// Prompt mode: `Esc` cancels back to just navigating, `Enter` submits a
+/// non-empty (trimmed) task via `Command::AddTask`. Otherwise: `Esc`
+/// closes the window (via the `std::mem::replace` below already defaulting
+/// to `Mode::Normal`), `Up`/`Down` moves the selection, `Shift+Up`/
+/// `Shift+Down` reorders the selected task (`Command::MoveTask`),
+/// `Ctrl+N` starts composing, `Space`/`Enter` toggles the selected task's
+/// done state, `d` soft-deletes it. Deletion has no confirmation dialog —
+/// deliberately, to keep this "quick" — but is recoverable data (soft-
+/// deleted, not erased; see `tmr_core::tasks::TaskStore::delete`).
+fn handle_todo_key(ui: &mut UiState, app: &mut App, key: Key) {
+    let Mode::Todo { selected, new_task } = std::mem::replace(&mut ui.mode, Mode::Normal) else {
+        return;
+    };
+
+    if let Some(mut buffer) = new_task {
+        match key.code {
+            KeyCode::Esc => {
+                ui.mode = Mode::Todo {
+                    selected,
+                    new_task: None,
+                };
+            }
+            KeyCode::Enter => {
+                let text = buffer.trim().to_string();
+                if !text.is_empty() {
+                    if let Err(e) = app.dispatch(Command::AddTask(text)) {
+                        ui.set_status(e.to_string(), StatusLevel::Error);
+                    }
+                }
+                let count = app.tasks().visible().count();
+                ui.mode = Mode::Todo {
+                    selected: count.saturating_sub(1),
+                    new_task: None,
+                };
+            }
+            KeyCode::Char(c) => {
+                buffer.push(c);
+                ui.mode = Mode::Todo {
+                    selected,
+                    new_task: Some(buffer),
+                };
+            }
+            KeyCode::Backspace => {
+                buffer.pop();
+                ui.mode = Mode::Todo {
+                    selected,
+                    new_task: Some(buffer),
+                };
+            }
+            _ => {
+                ui.mode = Mode::Todo {
+                    selected,
+                    new_task: Some(buffer),
+                };
+            }
+        }
+        return;
+    }
+
+    match key.code {
+        KeyCode::Esc => {}
+        KeyCode::Up if key.shift => {
+            move_selected_task(app, selected, -1);
+            ui.mode = Mode::Todo {
+                selected: selected.saturating_sub(1),
+                new_task: None,
+            };
+        }
+        KeyCode::Down if key.shift => {
+            move_selected_task(app, selected, 1);
+            let count = app.tasks().visible().count();
+            ui.mode = Mode::Todo {
+                selected: (selected + 1).min(count.saturating_sub(1)),
+                new_task: None,
+            };
+        }
+        KeyCode::Up => {
+            ui.mode = Mode::Todo {
+                selected: selected.saturating_sub(1),
+                new_task: None,
+            };
+        }
+        KeyCode::Down => {
+            let count = app.tasks().visible().count();
+            ui.mode = Mode::Todo {
+                selected: (selected + 1).min(count.saturating_sub(1)),
+                new_task: None,
+            };
+        }
+        KeyCode::Char('n') if key.ctrl => {
+            ui.mode = Mode::Todo {
+                selected,
+                new_task: Some(String::new()),
+            };
+        }
+        KeyCode::Char(' ') | KeyCode::Enter => {
+            if let Some(id) = visible_task_id(app, selected) {
+                if let Err(e) = app.dispatch(Command::ToggleTaskDone(id)) {
+                    ui.set_status(e.to_string(), StatusLevel::Error);
+                }
+            }
+            ui.mode = Mode::Todo {
+                selected,
+                new_task: None,
+            };
+        }
+        KeyCode::Char('d') => {
+            if let Some(id) = visible_task_id(app, selected) {
+                if let Err(e) = app.dispatch(Command::DeleteTask(id)) {
+                    ui.set_status(e.to_string(), StatusLevel::Error);
+                }
+            }
+            let count = app.tasks().visible().count();
+            ui.mode = Mode::Todo {
+                selected: selected.min(count.saturating_sub(1)),
+                new_task: None,
+            };
+        }
+        _ => {
+            ui.mode = Mode::Todo {
+                selected,
+                new_task: None,
+            };
+        }
+    }
+}
+
+fn visible_task_id(app: &App, selected: usize) -> Option<u64> {
+    app.tasks().visible().nth(selected).map(|t| t.id)
+}
+
+fn move_selected_task(app: &mut App, selected: usize, delta: i32) {
+    if let Some(id) = visible_task_id(app, selected) {
+        let _ = app.dispatch(Command::MoveTask { id, delta });
     }
 }

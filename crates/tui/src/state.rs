@@ -42,6 +42,7 @@ pub enum PromptKind {
 #[derive(Debug, Clone)]
 pub enum ConfirmAction {
     Delete { path: PathBuf },
+    ExportTasks { path: PathBuf },
 }
 
 pub enum Mode {
@@ -74,8 +75,11 @@ pub enum Mode {
     },
     /// The interface-customization window, opened with `s` (default
     /// binding). `row` is the currently highlighted setting (0 = Theme,
-    /// 1 = Line indicator); Up/Down moves between rows, Left/Right/Enter
-    /// cycles the highlighted row's value, applied live. Esc closes it.
+    /// 1 = Border, 2 = Line indicator, 3 = Timer bar, 4 = JSON
+    /// highlighting); Up/Down moves between rows, Left/Right/Enter cycles
+    /// the highlighted row's value, applied live. Esc closes it. See
+    /// `input.rs::handle_settings_key`, the source of truth for the row
+    /// count/order.
     Settings {
         row: usize,
     },
@@ -87,6 +91,19 @@ pub enum Mode {
     /// in this mode dispatches a `Command`.
     Calendar {
         month_offset: i32,
+    },
+    /// The Quick-TODO window, opened with `ctrl+t` (default binding): a
+    /// minimal task list backed by `tmr_core::tasks::TaskStore`,
+    /// independent of any open document. `selected` indexes into the
+    /// *visible* (non-deleted) tasks, in display order. `new_task` holds
+    /// the in-progress text while composing a new task — `Some` (even if
+    /// empty) while typing, `None` while just navigating; `ctrl+n` starts
+    /// composing, `enter` submits, `esc` cancels composing (a second `esc`
+    /// with nothing being composed closes the window). See
+    /// `input.rs::handle_todo_key`.
+    Todo {
+        selected: usize,
+        new_task: Option<String>,
     },
 }
 

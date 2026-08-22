@@ -63,7 +63,8 @@ fn main() -> Result<()> {
     let addons_enabled = config.addons.enabled.clone();
     let widgets_enabled = config.widgets.enabled.clone();
 
-    let mut app = App::new(workspace, config, keymap, theme);
+    let tasks_path = tmr_core::config::default_tasks_path();
+    let mut app = App::new(workspace, config, keymap, theme, tasks_path);
 
     if addons_enabled.iter().any(|a| a == "stats") {
         app.register_addon(Box::new(StatsAddon::default()));

@@ -9,6 +9,7 @@ use crate::events::AppEvent;
 use crate::fs_ops;
 use crate::keymap::Keymap;
 use crate::search;
+use crate::tasks::TaskStore;
 use crate::theme::Theme;
 use crate::widget::Widget;
 use crate::workspace::{Entry, Workspace};
@@ -27,11 +28,29 @@ pub struct App {
     pub theme: Theme,
     widgets: Vec<Box<dyn Widget>>,
     addons: AddonRegistry,
+    tasks: TaskStore,
+    /// Where `persist_tasks` writes to; `None` means tasks stay
+    /// session-only (no persistence). The caller resolves this — typically
+    /// `tmr_core::config::default_tasks_path()`, mirroring how the
+    /// workspace/config/theme are resolved by the caller too — rather than
+    /// `App::new` reaching for the real filesystem itself, so constructing
+    /// an `App` in a test never touches a real user's task file.
+    tasks_path: Option<PathBuf>,
 }
 
 impl App {
-    pub fn new(workspace: Workspace, config: Config, keymap: Keymap, theme: Theme) -> Self {
+    pub fn new(
+        workspace: Workspace,
+        config: Config,
+        keymap: Keymap,
+        theme: Theme,
+        tasks_path: Option<PathBuf>,
+    ) -> Self {
         let current_dir = workspace.root().to_path_buf();
+        let tasks = tasks_path
+            .as_deref()
+            .and_then(|p| TaskStore::load(p).ok())
+            .unwrap_or_default();
         App {
             workspace,
             current_dir,
@@ -42,6 +61,8 @@ impl App {
             theme,
             widgets: Vec::new(),
             addons: AddonRegistry::new(),
+            tasks,
+            tasks_path,
         }
     }
 
@@ -59,6 +80,10 @@ impl App {
 
     pub fn document(&self) -> Option<&Document> {
         self.document.as_ref()
+    }
+
+    pub fn tasks(&self) -> &TaskStore {
+        &self.tasks
     }
 
     pub fn register_widget(&mut self, widget: Box<dyn Widget>) {
@@ -177,7 +202,44 @@ impl App {
                 self.refresh_current_dir()?;
                 Ok(AppEvent::Reloaded)
             }
+            Command::AddTask(text) => {
+                self.tasks.add(text);
+                self.persist_tasks()?;
+                Ok(AppEvent::TasksChanged)
+            }
+            Command::ToggleTaskDone(id) => {
+                self.tasks.toggle_done(id);
+                self.persist_tasks()?;
+                Ok(AppEvent::TasksChanged)
+            }
+            Command::DeleteTask(id) => {
+                self.tasks.delete(id);
+                self.persist_tasks()?;
+                Ok(AppEvent::TasksChanged)
+            }
+            Command::MoveTask { id, delta } => {
+                self.tasks.move_visible(id, delta);
+                self.persist_tasks()?;
+                Ok(AppEvent::TasksChanged)
+            }
+            Command::ExportTasks(path) => {
+                std::fs::write(&path, self.tasks.export_tsv())
+                    .map_err(|e| AppError::from_io(&path, e))?;
+                Ok(AppEvent::TasksExported { path })
+            }
         }
+    }
+
+    /// Best-effort: if no config dir is resolvable (`tasks_path` is
+    /// `None`), tasks just stay session-only rather than erroring every
+    /// mutation.
+    fn persist_tasks(&self) -> Result<()> {
+        if let Some(path) = &self.tasks_path {
+            self.tasks
+                .save(path)
+                .map_err(|e| AppError::from_io(path, e))?;
+        }
+        Ok(())
     }
 
     fn refresh_current_dir(&mut self) -> Result<()> {
@@ -196,7 +258,30 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(dir.path().join("note.md"), "# Hi\n\n- [ ] task\n").unwrap();
         let ws = Workspace::new(dir.path().to_path_buf()).unwrap();
-        let app = App::new(ws, Config::default(), Keymap::default(), Theme::dark());
+        let app = App::new(
+            ws,
+            Config::default(),
+            Keymap::default(),
+            Theme::dark(),
+            None,
+        );
+        (dir, app)
+    }
+
+    /// Like `make_app`, but with `tasks_path` pointed inside the same
+    /// tempdir — for tests that exercise task persistence, so they never
+    /// touch a real user's `tasks.tsv`.
+    fn make_app_with_tasks() -> (tempfile::TempDir, App) {
+        let dir = tempfile::tempdir().unwrap();
+        let ws = Workspace::new(dir.path().to_path_buf()).unwrap();
+        let tasks_path = dir.path().join("tasks.tsv");
+        let app = App::new(
+            ws,
+            Config::default(),
+            Keymap::default(),
+            Theme::dark(),
+            Some(tasks_path),
+        );
         (dir, app)
     }
 
@@ -266,5 +351,68 @@ mod tests {
             app.addon_status_texts(),
             vec!["opened:1 saved:0 created:0 deleted:0"]
         );
+    }
+
+    #[test]
+    fn add_task_appears_in_visible_tasks_and_persists() {
+        let (_dir, mut app) = make_app_with_tasks();
+        let event = app
+            .dispatch(Command::AddTask("write the docs".to_string()))
+            .unwrap();
+        assert!(matches!(event, AppEvent::TasksChanged));
+        let visible: Vec<_> = app.tasks().visible().collect();
+        assert_eq!(visible.len(), 1);
+        assert_eq!(visible[0].text, "write the docs");
+
+        // A fresh App pointed at the same path picks up the persisted task.
+        let tasks_path = app.tasks_path.clone().unwrap();
+        let reloaded = crate::tasks::TaskStore::load(&tasks_path).unwrap();
+        assert_eq!(reloaded.visible().count(), 1);
+    }
+
+    #[test]
+    fn toggle_and_delete_task_round_trip_through_dispatch() {
+        let (_dir, mut app) = make_app_with_tasks();
+        app.dispatch(Command::AddTask("ship it".to_string()))
+            .unwrap();
+        let id = app.tasks().visible().next().unwrap().id;
+
+        app.dispatch(Command::ToggleTaskDone(id)).unwrap();
+        assert_eq!(
+            app.tasks()
+                .all()
+                .iter()
+                .find(|t| t.id == id)
+                .unwrap()
+                .status,
+            crate::tasks::TaskStatus::Done
+        );
+
+        app.dispatch(Command::DeleteTask(id)).unwrap();
+        assert_eq!(app.tasks().visible().count(), 0);
+        assert_eq!(app.tasks().all().len(), 1); // soft-deleted, not erased
+    }
+
+    #[test]
+    fn export_tasks_writes_a_tsv_file_with_a_header() {
+        let dir = tempfile::tempdir().unwrap();
+        let ws = Workspace::new(dir.path().to_path_buf()).unwrap();
+        let mut app = App::new(
+            ws,
+            Config::default(),
+            Keymap::default(),
+            Theme::dark(),
+            None,
+        );
+        app.dispatch(Command::AddTask("exported task".to_string()))
+            .unwrap();
+        let export_path = dir.path().join("export.tsv");
+        let event = app
+            .dispatch(Command::ExportTasks(export_path.clone()))
+            .unwrap();
+        assert!(matches!(event, AppEvent::TasksExported { .. }));
+        let contents = std::fs::read_to_string(&export_path).unwrap();
+        assert!(contents.starts_with("id\tstatus\tcreated_at\tdone_at\ttext\n"));
+        assert!(contents.contains("exported task"));
     }
 }

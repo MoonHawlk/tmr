@@ -167,6 +167,21 @@ pub fn default_config_dir() -> Option<PathBuf> {
     dirs::config_dir().map(|d| d.join("tmr"))
 }
 
+/// Where the Quick-TODO window's persistent task store lives — next to
+/// `config.toml`, since tasks are an application-level concern independent
+/// of any workspace (see `crates/core/src/tasks.rs`).
+pub fn default_tasks_path() -> Option<PathBuf> {
+    default_config_dir().map(|d| d.join("tasks.tsv"))
+}
+
+/// Where `Ctrl+E` exports the full task history to. Deliberately separate
+/// from `default_tasks_path` (rather than the currently-browsed
+/// workspace): tasks aren't scoped to a workspace, so neither is their
+/// export — it always lands in the same, predictable place.
+pub fn default_tasks_export_path() -> Option<PathBuf> {
+    default_config_dir().map(|d| d.join("tasks-export.tsv"))
+}
+
 /// Returns the `config.toml` path `Config::load(None)` reads — the only
 /// path the running app currently knows how to write back to (there's no
 /// `--config` CLI flag wired up yet, so this always agrees with what was

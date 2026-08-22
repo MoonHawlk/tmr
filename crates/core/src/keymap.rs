@@ -30,6 +30,8 @@ const DEFAULTS: &[(&str, &str)] = &[
     ("select_all", "ctrl+a"),
     ("copy", "ctrl+c"),
     ("cut", "ctrl+x"),
+    ("todo", "ctrl+t"),
+    ("export_tasks", "ctrl+e"),
 ];
 
 /// Action name -> key-spec string, as configured by the user (or defaults).

@@ -40,4 +40,9 @@ pub enum AppEvent {
         matches: Vec<LineMatch>,
     },
     Reloaded,
+    /// A task was added, toggled, deleted, or reordered.
+    TasksChanged,
+    TasksExported {
+        path: PathBuf,
+    },
 }

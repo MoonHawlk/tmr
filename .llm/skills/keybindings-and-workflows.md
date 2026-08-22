@@ -30,8 +30,8 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
 - **Edit** — the built-in text editor is active over the open document.
 - **Search** — typing a filename or in-document search query.
 - **Prompt** — typing a new filename or a rename target.
-- **Confirm** — a yes/no gate before a destructive action (currently only
-  delete).
+- **Confirm** — a yes/no gate before a destructive/notable action
+  (currently file delete and the `ctrl+e` task export).
 - **Help** — a visual-only, filterable command-reference popup, entered
   with `h` any time in Normal mode (Edit mode intercepts `h` as a literal
   character, so this never fires mid-edit — that's the *only* gate; it
@@ -41,13 +41,13 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
 - **Settings** — the interface-customization window, entered with `s`
   (available regardless of focus or whether a document is open — Edit
   mode intercepts `s` as a literal character the same way it does `h`).
-  `Up`/`Down` moves between its four rows (Theme, Border, Line indicator,
-  Timer bar); `Left`/`Right`/`Enter` cycles the highlighted row's value,
-  applying it immediately (the Border and Timer rows flip
-  `app.config.ui.border`/`.timer` directly, since the TUI already reads
-  those fields live every frame — no separate `UiState` mirror needed,
-  unlike Theme/Line indicator); `Esc` closes. See
-  `crates/tui/src/settings.rs` and
+  `Up`/`Down` moves between its five rows (Theme, Border, Line indicator,
+  Timer bar, JSON highlighting); `Left`/`Right`/`Enter` cycles the
+  highlighted row's value, applying it immediately (the Border, Timer and
+  JSON rows flip `app.config.ui.border`/`.timer`/`.json_highlight`
+  directly, since the TUI already reads those fields live every frame —
+  no separate `UiState` mirror needed, unlike Theme/Line indicator); `Esc`
+  closes. See `crates/tui/src/settings.rs` and
   `crates/tui/src/input.rs::handle_settings_key`.
 - **Calendar** — a mini month-preview popup, entered with `Alt+C`. Shows a
   weekday-aligned grid for the current month with today's day highlighted;
@@ -56,6 +56,18 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
   this mode dispatches a `Command`. See `crates/tui/src/calendar.rs`,
   `tmr_core::datetime::CivilDate`, and
   `crates/tui/src/input.rs::handle_calendar_key`.
+- **Todo** — the Quick-TODO window, entered with `Ctrl+T`, independent of
+  any open document. `selected` indexes the *visible* (non-`Deleted`)
+  tasks; `new_task: Option<String>` is `Some` while composing a new task's
+  text (`Ctrl+N` starts composing, `Enter` submits a non-empty trimmed
+  value via `Command::AddTask`, `Esc` cancels composing) and `None` while
+  just navigating (`Up`/`Down` moves selection, `Shift+Up`/`Shift+Down`
+  reorders via `Command::MoveTask`, `Space`/`Enter` toggles done via
+  `Command::ToggleTaskDone`, `d` soft-deletes via `Command::DeleteTask`
+  with no confirmation dialog — deliberately, to keep this "quick", and
+  safe since deletion is soft; `Esc` closes the window). See
+  `crates/tui/src/todo_view.rs`, `tmr_core::tasks::TaskStore`, and
+  `crates/tui/src/input.rs::handle_todo_key`.
 
 In **Search**/**Prompt** modes, every typed character is appended to the
 buffer (not looked up in the keymap) — so typing `q` while naming a new
@@ -80,11 +92,13 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `r` | `rename` | Files only: prompt to rename the selected entry |
 | `d` | `delete` | Files only, non-directories: ask for confirmation, then delete |
 | `Ctrl+R` | `reload` | Re-list the current directory from disk |
-| `y` | `confirm` | Confirms a pending delete (Confirm mode only) |
+| `y` | `confirm` | Confirms a pending delete or task export (Confirm mode only) |
 | `Shift+↑↓←→`/`Shift+Home`/`Shift+End` | *(none — handled inside Edit mode, not the action keymap)* | Edit mode only: extend a text selection from the cursor |
 | `h` | `help` | Opens the command-reference popup |
-| `s` | `settings` | Opens the Settings window (theme, border style, line indicator, timer bar) |
+| `s` | `settings` | Opens the Settings window (theme, border style, line indicator, timer bar, JSON highlighting) |
 | `Alt+C` | `calendar` | Opens the Calendar window (mini month preview) |
+| `Ctrl+T` | `todo` | Opens the Quick-TODO window |
+| `Ctrl+E` | `export_tasks` | Exports all tasks (current + historical) to `.tsv`, after confirmation |
 | `q` | `quit` | Exit tmr |
 
 ## Step-by-step workflows
@@ -126,10 +140,13 @@ so it composes with the current-line indicator instead of fighting it).
 **Look up a command**: any pane, `h` → type to filter → `Esc` to close.
 Read-only; it doesn't run anything.
 
-**Change the theme or current-line indicator**: any pane, any time,
-`s` → `Up`/`Down` to the row you want → `Left`/`Right`/`Enter` to cycle
-its value → `Esc` to close. Both apply live; neither is written to
-`config.toml` (session-only — see `configuration.md`'s Themes section).
+**Change a Settings-window value**: any pane, any time, `s` → `Up`/`Down`
+to the row you want (Theme, Border, Line indicator, Timer bar, JSON
+highlighting) → `Left`/`Right`/`Enter` to cycle its value → `Esc` to
+close. Every row applies live *and* is written straight back to the
+matching `[ui]`/`[theme]` key in `config.toml`, so the choice survives a
+restart too — see `configuration.md`'s Themes section and
+`tmr_core::config::persist_settings`.
 
 **Create a note**: any pane, `Ctrl+N` → type a filename (e.g.
 `idea.md`) → `Enter`. Created empty in the *current* directory (the one
@@ -147,6 +164,16 @@ bar.
 
 **Search inside the open document**: Document focused → `/` → type →
 `Enter`. Jumps the cursor to the first matching line.
+
+**Capture a quick task**: any pane, any time, `Ctrl+T` → `Ctrl+N` → type
+the task text → `Enter`. No document needs to be open. `Space`/`Enter`
+on a selected task toggles it done; `Shift+↑`/`Shift+↓` reorders it; `d`
+deletes it (soft — see `tmr_core::tasks::TaskStore::delete`, no confirm
+dialog); `Esc` closes the window.
+
+**Export tasks**: any pane, any time, `Ctrl+E` → confirm with `y` (any
+other key cancels). Writes every task ever recorded — open, done, and
+soft-deleted — to `~/.config/tmr/tasks-export.tsv`.
 
 **Navigate directories**: Files focused, `Enter` on a directory entry
 (shown with a trailing `/`) enters it and resets selection to the top;

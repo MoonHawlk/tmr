@@ -9,6 +9,28 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- A Quick-TODO window (`ctrl+t`, new default binding): a minimal task
+  list — create, check off, reorder, and delete simple tasks — usable
+  without opening or navigating to a Markdown document. Tasks persist to
+  `~/.config/tmr/tasks.tsv`, independent of the current workspace, via a
+  new `tmr_core::tasks::TaskStore` reached through the existing
+  `Command → App::dispatch → AppEvent` flow (`AddTask`/`ToggleTaskDone`/
+  `DeleteTask`/`MoveTask`). Deletion is soft (marked `deleted`, kept on
+  disk rather than erased) so the full history stays available for later
+  search/filtering and for export. `App::new` now takes an extra
+  `tasks_path: Option<PathBuf>` argument (resolved by the caller, e.g.
+  `main.rs` via `tmr_core::config::default_tasks_path`) rather than
+  reaching for the real filesystem itself, so constructing an `App` in a
+  test never touches a real user's task file. See
+  `crates/tui/src/todo_view.rs`, `crates/tui/src/input.rs::handle_todo_key`,
+  and `crates/core/src/tasks.rs`.
+- An application-level task export: `ctrl+e` (new default binding,
+  available regardless of focus) asks for confirmation, then writes every
+  task ever recorded — open, done, and deleted — to
+  `~/.config/tmr/tasks-export.tsv` as TSV with a header row. New
+  `Command::ExportTasks`/`AppEvent::TasksExported` and
+  `ConfirmAction::ExportTasks`, reusing the same Confirm-dialog machinery
+  the file-delete flow already has.
 - Optional JSON syntax highlighting: `[ui] json_highlight = true` (or a
   new "JSON highlighting" row in the Settings window) colors `.json`
   files' keys, strings, numbers, and `true`/`false`/`null` distinctly

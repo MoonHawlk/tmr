@@ -27,4 +27,15 @@ pub enum Command {
     SearchInDocument(String),
     /// Re-reads the current directory listing from disk.
     Reload,
+    /// Adds a new open task to the persistent Quick-TODO store.
+    AddTask(String),
+    /// Flips a task between open and done.
+    ToggleTaskDone(u64),
+    /// Soft-deletes a task (kept for `ExportTasks`'s historical record).
+    DeleteTask(u64),
+    /// Reorders a task among the visible (non-deleted) ones.
+    MoveTask { id: u64, delta: i32 },
+    /// Writes the full task history (open, done, and deleted) to `path` as
+    /// TSV.
+    ExportTasks(PathBuf),
 }

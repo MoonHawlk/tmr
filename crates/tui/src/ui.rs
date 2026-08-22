@@ -9,6 +9,7 @@ use crate::layout::compute_panes;
 use crate::settings;
 use crate::state::{Mode, UiState};
 use crate::theme::Palette;
+use crate::todo_view;
 use crate::widgets::{document_view, file_list, side_panel, status_bar, timer_bar};
 
 pub fn draw(
@@ -115,5 +116,17 @@ pub fn draw(
 
     if let Mode::Calendar { month_offset } = &ui.mode {
         calendar::draw(frame, frame.area(), palette, *month_offset);
+    }
+
+    if let Mode::Todo { selected, new_task } = &ui.mode {
+        let visible: Vec<_> = app.tasks().visible().collect();
+        todo_view::draw(
+            frame,
+            frame.area(),
+            palette,
+            &visible,
+            *selected,
+            new_task.as_deref(),
+        );
     }
 }

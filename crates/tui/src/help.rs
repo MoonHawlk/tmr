@@ -38,9 +38,14 @@ const ENTRIES: &[(&str, &str)] = &[
     ("help", "Show this command reference"),
     (
         "settings",
-        "Open the Settings window (theme, line indicator)",
+        "Open the Settings window (theme, border, line indicator, timer, JSON)",
     ),
     ("calendar", "Open the Calendar window (mini month preview)"),
+    ("todo", "Open the Quick-TODO window"),
+    (
+        "export_tasks",
+        "Export all tasks (current + historical) to .tsv",
+    ),
     ("quit", "Quit tmr"),
 ];
 

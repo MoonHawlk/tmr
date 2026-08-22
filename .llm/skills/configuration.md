@@ -25,6 +25,15 @@ to stderr with a `tmr: warning:` prefix. A *partially* specified file
 The annotated template to copy is
 [`config/config.example.toml`](../../config/config.example.toml).
 
+Next to `config.toml`, in the same resolved config dir, lives
+`tasks.tsv` — the Quick-TODO window's persistent task store
+(`crates/core/src/tasks.rs::TaskStore`, path from
+`config::default_tasks_path`). It's a separate plain-TSV file, not part
+of `config.toml`'s schema below, since tasks are an application-level
+concern independent of any one workspace. `ctrl+e` exports the full
+task history to a sibling `tasks-export.tsv` in the same directory
+(`config::default_tasks_export_path`), after a confirm dialog.
+
 ## Schema
 
 ```toml
@@ -95,12 +104,15 @@ tmr falls back to the built-in dark palette and prints a warning
 Separately, the in-app Settings window (`s`, `crates/tui/src/settings.rs`)
 lets a user switch between `Default` (whatever the above resolved to at
 startup — snapshotted in `UiState::default_theme`), `Dark`, and
-`Light (grey)` live, without touching `config.toml` — see
-`crates/tui/src/input.rs::handle_settings_key`. That switch is
-session-only: it mutates `App::theme` directly (and `lib.rs::run_loop`
-recomputes the `Palette` every frame instead of once, to pick it up), but
-nothing persists it back to disk, so it resets to `config.toml`'s value
-on the next launch.
+`Light (grey)` live, without hand-editing `config.toml` — see
+`crates/tui/src/input.rs::handle_settings_key`. It mutates `App::theme`
+directly (and `lib.rs::run_loop` recomputes the `Palette` every frame
+instead of once, to pick it up) *and* writes the choice straight back to
+`[theme] name` via `tmr_core::config::persist_settings` (a
+`toml_edit::DocumentMut`-based, format-preserving edit — comments and
+unrelated keys survive), so it's still in effect on the next launch. The
+same function also persists the Settings window's other rows (`[ui]
+border`/`line_indicator`/`timer`/`json_highlight`).
 
 Theme file schema — flat key/value, all colors as `"#rrggbb"` hex or one
 of a small set of ANSI names (`black red green yellow blue magenta cyan

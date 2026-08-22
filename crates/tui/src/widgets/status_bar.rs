@@ -80,6 +80,17 @@ pub fn draw(
                 Style::default().fg(palette.muted),
             ),
         ]),
+        Mode::Todo { new_task, .. } => {
+            let hint = if new_task.is_some() {
+                "type task text · enter add · esc cancel"
+            } else {
+                "ctrl+n new · space done · d delete · shift+↑↓ move · esc close"
+            };
+            Line::from(vec![
+                Span::styled("TODO ", Style::default().fg(palette.accent)),
+                Span::styled(hint, Style::default().fg(palette.muted)),
+            ])
+        }
         Mode::Normal => {
             if let Some((msg, level, _)) = &ui.status {
                 let color = match level {

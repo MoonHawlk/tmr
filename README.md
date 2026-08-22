@@ -80,6 +80,21 @@ tmr ~/notes
 - A Calendar window (`alt+c`): a small popup with a mini month-preview
   grid, aligned like a standard calendar (weekday columns, today's day
   highlighted). `left`/`right` moves to the adjacent month, `esc` closes.
+- A Quick-TODO window (`ctrl+t`): a minimal task list, independent of any
+  open document — create, check off, reorder and (soft-)delete simple
+  tasks without navigating to or opening a Markdown file. `ctrl+n` starts
+  a new task, `space`/`enter` toggles it done, `shift+↑`/`shift+↓`
+  reorders it, `d` deletes it (recoverably — see below), `esc` closes.
+  Tasks persist to `~/.config/tmr/tasks.tsv`, independent of the current
+  workspace, so they're available across sessions and directories. A
+  deleted task is soft-deleted (kept, marked `deleted`) rather than
+  erased, so the full history stays available to `ctrl+e` (below) and to
+  future features (search, filtering). See
+  `crates/tui/src/todo_view.rs` and `tmr_core::tasks`.
+- An application-level task export (`ctrl+e`, any time, regardless of
+  focus): asks for confirmation, then writes every task ever recorded —
+  open, done, and deleted — to `~/.config/tmr/tasks-export.tsv` as TSV
+  with a header row.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -165,6 +180,8 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
 | `s`         | Open the Settings window (theme, border style, line indicator, timer bar, JSON highlighting); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
+| `ctrl+t`    | Open the Quick-TODO window; `ctrl+n` new task, `space`/`enter` toggle done, `shift+↑`/`shift+↓` reorder, `d` delete, `esc` close |
+| `ctrl+e`    | Export all tasks (current + historical) to `.tsv`, asking for confirmation first |
 | `q`         | Quit                                                 |
 
 ## Configuration
@@ -181,9 +198,15 @@ cp config/config.example.toml ~/.config/tmr/config.toml
 
 Key sections: `[workspace]` (default directory), `[theme]` (which palette
 to use), `[ui]` (border style, hidden files, current-line indicator, the
-`timer` bar),
+`timer` bar, JSON highlighting),
 `[editor]` (tab width), `[keys]` (any keybinding override), `[addons]` /
 `[widgets]` (which compiled-in addons/widgets to enable by id).
+
+The Quick-TODO window's tasks aren't part of `config.toml` — they're
+their own file, `~/.config/tmr/tasks.tsv` (next to `config.toml`, since
+tasks are an application-level concern independent of any one workspace).
+`ctrl+e` exports the full history to a sibling `tasks-export.tsv` in the
+same directory.
 
 ### Themes
 
@@ -341,7 +364,7 @@ fixes user-facing behavior.
 
 ### Productivity
 
-- [ ] Quick-TODO window backed by a persistent task file.
+- [x] Quick-TODO window backed by a persistent task file.
 
       The Quick-TODO should provide a minimal interface focused on creating,
       checking and organizing simple tasks without requiring a Markdown
@@ -352,6 +375,15 @@ fixes user-facing behavior.
 
       Add an application-level export action (`Ctrl+E`) that asks for
       confirmation and exports the current and historical tasks to `.tsv`.
+
+      — `ctrl+t` opens a minimal task list (create/check/reorder/delete), independent of any
+      open document. Tasks persist to `~/.config/tmr/tasks.tsv` (TSV, one task per line: id,
+      status, created_at, done_at, text) via `tmr_core::tasks::TaskStore`, reachable through the
+      existing `Command → App::dispatch → AppEvent` flow like everything else. Deletion is soft
+      (marked `deleted`, kept on disk) so the full history stays available for later search/
+      filtering and for `ctrl+e`'s export, which writes every task ever recorded to
+      `~/.config/tmr/tasks-export.tsv` after a confirm dialog. See `crates/tui/src/todo_view.rs`,
+      `crates/tui/src/input.rs::handle_todo_key`, and `tmr_core::tasks`.
 
 ### Customization
 

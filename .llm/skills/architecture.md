@@ -48,8 +48,13 @@ you're adding a new user-facing operation, add a `Command` variant and an
 **`tmr-core`** (`crates/core/src/`):
 - `app.rs` — `App`, the engine: owns `Workspace`, current directory +
   cached entry listing, the open `Document`, `Config`, `Keymap`, `Theme`,
-  registered widgets and the `AddonRegistry`. `App::dispatch` is the only
-  public mutator.
+  registered widgets, the `AddonRegistry`, and a `tasks::TaskStore`.
+  `App::dispatch` is the only public mutator. `App::new` takes a
+  `tasks_path: Option<PathBuf>` argument rather than resolving it
+  internally — the caller resolves it (`main.rs` via
+  `config::default_tasks_path`), the same way the workspace/config/theme
+  are already resolved by the caller, so constructing an `App` in a test
+  never touches a real user's task file.
 - `command.rs` — `Command` enum (the full vocabulary of operations).
 - `events.rs` — `AppEvent` enum (what happened, returned by `dispatch`).
 - `document.rs` — `Document` (path + raw text + dirty flag) and
@@ -64,6 +69,12 @@ you're adding a new user-facing operation, add a `Command` variant and an
   than removing the link itself, refuses non-regular files), `rename_file`.
 - `search.rs` — `search_filenames` / `search_in_text`, both plain
   case-insensitive substring matching, no index.
+- `tasks.rs` — `TaskStore`/`Task`/`TaskStatus`, the Quick-TODO window's
+  persistent store: plain TSV at `config::default_tasks_path()`
+  (`~/.config/tmr/tasks.tsv`), independent of any workspace. Deletion is
+  soft (`TaskStatus::Deleted`, kept on disk) so `export_tsv` (the
+  `ctrl+e` export) always has the full history; `visible()` filters
+  `Deleted` out for what the window actually shows.
 - `config.rs`, `theme.rs`, `keymap.rs`, `input.rs` — see `configuration.md`.
 - `widget.rs`, `addon.rs` — the extensibility traits, see
   `extending-the-app.md`.
