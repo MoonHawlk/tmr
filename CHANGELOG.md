@@ -9,6 +9,10 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- `ctrl+a` selects the entire document in Edit mode (new default binding,
+  `crates/core/src/keymap.rs`) — same selection mechanism as Shift+
+  navigation, just anchored at the start and cursor at the end in one
+  step. See `Editor::select_all` (`crates/tui/src/editor.rs`).
 - Text selection in Edit mode: holding `shift` with an arrow key, `home`,
   or `end` selects a range from the cursor, the way a shell prompt or a
   plain-text CLI editor does — the first Shift+move sets an anchor,

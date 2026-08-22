@@ -96,12 +96,17 @@ pub fn handle_key(
             handle_settings_key(ui, app, key, image_cap, width);
         }
         Mode::Edit => {
-            if resolved_keymap.get(&key).map(String::as_str) == Some("save") {
+            let action = resolved_keymap.get(&key).map(String::as_str);
+            if action == Some("save") {
                 save_current(ui, app);
                 refresh_rendered(ui, app, palette, image_cap, width);
             } else if key.code == KeyCode::Esc {
                 ui.mode = Mode::Normal;
                 refresh_rendered(ui, app, palette, image_cap, width);
+            } else if action == Some("select_all") {
+                if let Some(editor) = ui.editor.as_mut() {
+                    editor.select_all();
+                }
             } else {
                 handle_editor_key(ui, key, tab_width);
                 refresh_rendered(ui, app, palette, image_cap, width);

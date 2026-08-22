@@ -26,6 +26,7 @@ const ENTRIES: &[(&str, &str)] = &[
     ("toggle_task", "Toggle the checkbox on the cursor's line"),
     ("save", "Save the document (Edit mode)"),
     ("cancel", "Leave Edit mode / cancel a dialog"),
+    ("select_all", "Select the entire document (Edit mode)"),
     ("search", "Search filenames or in-document text"),
     ("new_file", "Create a new file"),
     ("rename", "Rename the selected file"),

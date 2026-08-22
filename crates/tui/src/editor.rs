@@ -100,6 +100,15 @@ impl Editor {
         self.selection_anchor = None;
     }
 
+    /// Selects the entire buffer: anchor at the very start, cursor at the
+    /// very end, the same range shape Shift+navigation would produce if
+    /// dragged across the whole document.
+    pub fn select_all(&mut self) {
+        self.selection_anchor = Some((0, 0));
+        self.cursor_row = self.lines.len().saturating_sub(1);
+        self.cursor_col = self.current_line_len();
+    }
+
     /// Deletes the selected text (if any), moving the cursor to where the
     /// selection started. Returns whether anything was deleted, so callers
     /// (e.g. "typing replaces the selection") know whether to skip their
@@ -376,5 +385,23 @@ mod tests {
         let mut ed = Editor::new("hello", 4);
         assert!(!ed.delete_selection());
         assert_eq!(ed.to_content(), "hello");
+    }
+
+    #[test]
+    fn select_all_spans_the_whole_buffer() {
+        let mut ed = Editor::new("abc\ndef\nghi", 4);
+        ed.move_right();
+        ed.select_all();
+        assert_eq!(ed.selection_range(), Some(((0, 0), (2, 3))));
+        assert_eq!(ed.cursor(), (2, 3));
+    }
+
+    #[test]
+    fn select_all_then_delete_clears_the_buffer() {
+        let mut ed = Editor::new("abc\ndef", 4);
+        ed.select_all();
+        assert!(ed.delete_selection());
+        assert_eq!(ed.to_content(), "");
+        assert_eq!(ed.cursor(), (0, 0));
     }
 }

@@ -45,6 +45,7 @@ tmr ~/notes
   keys to select a range, the same way a shell prompt or a plain-text CLI
   editor does. `Backspace`/`Delete` removes the selection; typing a
   character replaces it. Selected text is visually reverse-highlighted.
+  `ctrl+a` selects the entire document the same way.
 - Line numbers in the Document pane's gutter (both the normal rendered
   view and the raw Edit-mode view).
 - A searchable command-reference popup (`h`).
@@ -121,6 +122,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `d`         | Delete selected file (asks to confirm with `y`)      |
 | `ctrl+r`    | Reload the current directory listing                |
 | `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
+| `ctrl+a`    | Edit mode only: select the entire document              |
 | `h`         | Open the command-reference popup; type to filter, `esc` to close |
 | `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `q`         | Quit                                                 |
@@ -254,10 +256,11 @@ as part of any change that adds/fixes user-facing behavior.
       and a Highlight-vs-Bar current-line indicator
 - [x] Shift+navigation text selection in Edit mode (select, then
       Backspace/Delete/type to remove or replace it)
+- [x] Select-all (`Ctrl+A`)
 - [ ] Copy/cut the current selection to the system clipboard (selection
       exists now, but there's no clipboard integration yet — `Ctrl+C`/
       `Ctrl+X` are unbound)
-- [ ] Select-all (`Ctrl+A`) and double-click/word-level selection
+- [ ] Double-click/word-level selection
 - [ ] Persist Settings-window choices (theme, line indicator) to
       `config.toml` — they currently apply live but are session-only,
       reset to `[theme] name`'s configured value and `Highlight` on

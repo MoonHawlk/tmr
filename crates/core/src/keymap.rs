@@ -26,6 +26,7 @@ const DEFAULTS: &[(&str, &str)] = &[
     ("focus_files", "tab"),
     ("help", "h"),
     ("settings", "s"),
+    ("select_all", "ctrl+a"),
 ];
 
 /// Action name -> key-spec string, as configured by the user (or defaults).
