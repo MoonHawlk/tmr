@@ -56,13 +56,15 @@ tmr ~/notes
   highlighted row and auto-scroll on terminals too short to fit every
   entry at once.
 - A Settings window (`s`) for live interface customization: pick a color
-  theme (`Default` / `Dark` / `Light (grey)`) and how the current line is
-  marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
-  needed, and both choices are persisted to `config.toml` as you change
-  them, so they survive a restart too.
-- An optional Timer bar (`[ui] timer = true`): a thin strip at the very
-  top of the TUI, above the Files/Document panes, showing the current
-  time (UTC), updated live once a second. Off by default.
+  theme (`Default` / `Dark` / `Light (grey)`), how the current line is
+  marked (full-line `Highlight` or a `Bar` gutter marker), and whether the
+  Timer bar is shown (`On`/`Off`) — no restart needed, and all three
+  choices are persisted to `config.toml` as you change them, so they
+  survive a restart too.
+- An optional Timer bar (`[ui] timer = true`, or toggle it live from the
+  Settings window): a thin strip at the very top of the TUI, above the
+  Files/Document panes, showing the current time (UTC), updated live once
+  a second. Off by default.
 - A `"double"` border style (`[ui] border = "double"`) alongside the
   default `"ascii"`, `"rounded"`, and `"none"` — double box-drawing lines
   (`╔═╗`/`║`/`╚═╝`) for a denser, more application-panel look than the
@@ -153,7 +155,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+a`    | Edit mode only: select the entire document              |
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
-| `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
+| `s`         | Open the Settings window (theme, line indicator, timer bar); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
 | `q`         | Quit                                                 |
 
@@ -190,8 +192,8 @@ from `light`'s blue/lavender tint. Any other name is looked up at
 pick `Dark`/`Light (grey)` from the in-app Settings window (`s`) instead —
 see [Keybindings](#keybindings); that switch is live and, as of the
 choice you make, also written straight back to `[theme] name` in
-`config.toml` (along with `[ui] line_indicator`) — see
-`tmr_core::config::persist_settings`, which edits just those two keys via
+`config.toml` (along with `[ui] line_indicator` and `[ui] timer`) — see
+`tmr_core::config::persist_settings`, which edits just those keys via
 `toml_edit` so the rest of your file (comments included) is left alone.
 
 ## Architecture

@@ -9,6 +9,15 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- The Settings window (`s`) can now toggle the Timer bar on/off live, as a
+  third row alongside Theme and Line indicator — `left`/`right`/`enter`
+  flips it, and the choice persists to `[ui] timer` in `config.toml` the
+  same way the other two rows already did. Unlike Theme/Line indicator,
+  the toggle updates `app.config.ui.timer` directly rather than a
+  `UiState` mirror, since the TUI already reads that field live every
+  frame. See `crates/tui/src/settings.rs` and
+  `crates/tui/src/input.rs::handle_settings_key`;
+  `tmr_core::config::persist_settings` now writes `ui.timer` too.
 - An optional Timer bar: `[ui] timer = true` draws a thin strip at the top
   of the TUI, above the Files/Document panes, with the current time (UTC),
   updating live once a second. Backed by a new dependency-free calendar/

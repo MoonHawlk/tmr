@@ -128,21 +128,27 @@ pub fn default_config_path() -> Option<PathBuf> {
     default_config_dir().map(|d| d.join("config.toml"))
 }
 
-/// Writes `theme.name` and `ui.line_indicator` into the config file at
-/// `path`, creating it (and its parent directory) if it doesn't exist yet,
-/// while leaving every other key's value, formatting and comments
-/// untouched — used by the Settings window to persist its two
+/// Writes `theme.name`, `ui.line_indicator` and `ui.timer` into the config
+/// file at `path`, creating it (and its parent directory) if it doesn't
+/// exist yet, while leaving every other key's value, formatting and
+/// comments untouched — used by the Settings window to persist its
 /// live-editable choices without clobbering the rest of a hand-edited
 /// `config.toml`. A `toml_edit::DocumentMut` (format-preserving, unlike
 /// this module's `toml::from_str`/plain-struct-based loading) is what
 /// makes that possible.
-pub fn persist_settings(path: &Path, theme_name: &str, line_indicator: &str) -> io::Result<()> {
+pub fn persist_settings(
+    path: &Path,
+    theme_name: &str,
+    line_indicator: &str,
+    timer: bool,
+) -> io::Result<()> {
     let existing = std::fs::read_to_string(path).unwrap_or_default();
     let mut doc = existing
         .parse::<toml_edit::DocumentMut>()
         .unwrap_or_default();
     doc["theme"]["name"] = toml_edit::value(theme_name);
     doc["ui"]["line_indicator"] = toml_edit::value(line_indicator);
+    doc["ui"]["timer"] = toml_edit::value(timer);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -203,10 +209,11 @@ mod tests {
     fn persist_settings_creates_a_missing_file_and_its_parent_dir() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("nested").join("config.toml");
-        persist_settings(&path, "dark", "bar").unwrap();
+        persist_settings(&path, "dark", "bar", true).unwrap();
         let result = Config::load(Some(&path));
         assert_eq!(result.config.theme.name, "dark");
         assert_eq!(result.config.ui.line_indicator, "bar");
+        assert!(result.config.ui.timer);
     }
 
     #[test]
@@ -219,13 +226,14 @@ mod tests {
         )
         .unwrap();
 
-        persist_settings(&path, "dark", "bar").unwrap();
+        persist_settings(&path, "dark", "bar", true).unwrap();
 
         let raw = std::fs::read_to_string(&path).unwrap();
         assert!(raw.contains("# a comment worth keeping"));
         let result = Config::load(Some(&path));
         assert_eq!(result.config.theme.name, "dark");
         assert_eq!(result.config.ui.line_indicator, "bar");
+        assert!(result.config.ui.timer);
         assert_eq!(result.config.editor.tab_width, 8);
     }
 

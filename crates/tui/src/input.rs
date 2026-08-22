@@ -578,11 +578,18 @@ fn handle_help_key(ui: &mut UiState, key: Key, keymap: &tmr_core::keymap::Keymap
     }
 }
 
-/// Row 0 is the Theme picker, row 1 the Line-indicator picker. Changing the
-/// theme takes effect immediately: it updates `app.theme` and re-renders
-/// the cached document view (`ui.rendered` bakes in colors at render time,
-/// unlike the borders/status-bar/popups, which read the palette live every
-/// frame — see `lib.rs::run_loop`'s per-iteration `Palette::from_theme`).
+/// Row 0 is the Theme picker, row 1 the Line-indicator picker, row 2 the
+/// Timer bar toggle. Changing the theme takes effect immediately: it
+/// updates `app.theme` and re-renders the cached document view
+/// (`ui.rendered` bakes in colors at render time, unlike the borders/
+/// status-bar/popups, which read the palette live every frame — see
+/// `lib.rs::run_loop`'s per-iteration `Palette::from_theme`). The Timer
+/// toggle flips `app.config.ui.timer` directly — the TUI already reads
+/// that field live every frame (`ui.rs::draw`'s `compute_panes` call), so
+/// there's no separate `UiState` mirror to keep in sync the way Theme and
+/// Line indicator need one.
+const SETTINGS_ROW_COUNT: usize = 3;
+
 fn handle_settings_key(
     ui: &mut UiState,
     app: &mut App,
@@ -602,24 +609,26 @@ fn handle_settings_key(
         }
         KeyCode::Down => {
             ui.mode = Mode::Settings {
-                row: (row + 1).min(1),
+                row: (row + 1).min(SETTINGS_ROW_COUNT - 1),
             };
         }
         KeyCode::Left | KeyCode::Right | KeyCode::Enter | KeyCode::Char(' ') => {
             ui.mode = Mode::Settings { row };
-            if row == 0 {
-                ui.theme_choice = if key.code == KeyCode::Left {
-                    ui.theme_choice.prev()
-                } else {
-                    ui.theme_choice.next()
-                };
-                app.theme = ui.theme_choice.resolve(&ui.default_theme);
-                let live_palette = Palette::from_theme(&app.theme);
-                refresh_rendered(ui, app, &live_palette, image_cap, width);
-            } else {
-                ui.line_indicator = ui.line_indicator.toggled();
+            match row {
+                0 => {
+                    ui.theme_choice = if key.code == KeyCode::Left {
+                        ui.theme_choice.prev()
+                    } else {
+                        ui.theme_choice.next()
+                    };
+                    app.theme = ui.theme_choice.resolve(&ui.default_theme);
+                    let live_palette = Palette::from_theme(&app.theme);
+                    refresh_rendered(ui, app, &live_palette, image_cap, width);
+                }
+                1 => ui.line_indicator = ui.line_indicator.toggled(),
+                _ => app.config.ui.timer = !app.config.ui.timer,
             }
-            persist_settings(ui);
+            persist_settings(ui, app);
         }
         _ => {
             ui.mode = Mode::Settings { row };
@@ -632,13 +641,15 @@ fn handle_settings_key(
 /// startup. Best-effort: a write failure (no config dir resolvable, no
 /// permission, etc.) just surfaces a status message — the choice still
 /// applies live either way, it just won't persist this time.
-fn persist_settings(ui: &mut UiState) {
+fn persist_settings(ui: &mut UiState, app: &App) {
     let Some(path) = tmr_core::config::default_config_path() else {
         return;
     };
     let theme_name = ui.theme_choice.persisted_name(&ui.default_theme_name);
     let indicator = ui.line_indicator.config_str();
-    if let Err(e) = tmr_core::config::persist_settings(&path, &theme_name, indicator) {
+    if let Err(e) =
+        tmr_core::config::persist_settings(&path, &theme_name, indicator, app.config.ui.timer)
+    {
         ui.set_status(
             format!("Settings applied but not saved: {e}"),
             StatusLevel::Error,

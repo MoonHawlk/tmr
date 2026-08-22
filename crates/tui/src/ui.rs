@@ -106,6 +106,7 @@ pub fn draw(
             palette,
             ui.theme_choice,
             ui.line_indicator,
+            app.config.ui.timer,
             *row,
         );
     }

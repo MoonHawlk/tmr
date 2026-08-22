@@ -30,7 +30,8 @@ show_hidden = false
 # straight back here.
 line_indicator = "highlight"
 # Show a thin bar with the current time (UTC) at the top of the TUI, above
-# the Files/Document panes.
+# the Files/Document panes. Also settable live from the in-app Settings
+# window (`s`), which writes its choice straight back here.
 timer = false
 
 [editor]

@@ -67,12 +67,14 @@ fn option_row(
     Line::from(spans)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn draw(
     frame: &mut Frame,
     area: Rect,
     palette: &Palette,
     theme_choice: ThemeChoice,
     line_indicator: LineIndicatorStyle,
+    timer: bool,
     row: usize,
 ) {
     let popup = centered_rect(64, 40, area);
@@ -90,6 +92,7 @@ pub fn draw(
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Min(0),
@@ -124,5 +127,11 @@ pub fn draw(
             palette,
         )),
         rows[1],
+    );
+
+    let timer_options = [("On", timer), ("Off", !timer)];
+    frame.render_widget(
+        Paragraph::new(option_row("Timer bar", &timer_options, row == 2, palette)),
+        rows[2],
     );
 }

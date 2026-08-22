@@ -41,9 +41,12 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
 - **Settings** — the interface-customization window, entered with `s`
   (available regardless of focus or whether a document is open — Edit
   mode intercepts `s` as a literal character the same way it does `h`).
-  `Up`/`Down` moves between its two rows (Theme, Line indicator); `Left`/
-  `Right`/`Enter` cycles the highlighted row's value, applying it
-  immediately; `Esc` closes. See `crates/tui/src/settings.rs` and
+  `Up`/`Down` moves between its three rows (Theme, Line indicator, Timer
+  bar); `Left`/`Right`/`Enter` cycles the highlighted row's value, applying
+  it immediately (the Timer row flips `app.config.ui.timer` directly,
+  since the TUI already reads that field live every frame — no separate
+  `UiState` mirror needed, unlike Theme/Line indicator); `Esc` closes. See
+  `crates/tui/src/settings.rs` and
   `crates/tui/src/input.rs::handle_settings_key`.
 - **Calendar** — a mini month-preview popup, entered with `Alt+C`. Shows a
   weekday-aligned grid for the current month with today's day highlighted;
@@ -79,7 +82,7 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `y` | `confirm` | Confirms a pending delete (Confirm mode only) |
 | `Shift+↑↓←→`/`Shift+Home`/`Shift+End` | *(none — handled inside Edit mode, not the action keymap)* | Edit mode only: extend a text selection from the cursor |
 | `h` | `help` | Opens the command-reference popup |
-| `s` | `settings` | Opens the Settings window (theme, line indicator) |
+| `s` | `settings` | Opens the Settings window (theme, line indicator, timer bar) |
 | `Alt+C` | `calendar` | Opens the Calendar window (mini month preview) |
 | `q` | `quit` | Exit tmr |
 
