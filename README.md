@@ -221,10 +221,15 @@ it's holding.
   wrapped, so the document cursor can address a stable line index for
   checkbox toggling. Word-wrap is a reasonable follow-up but needs a
   cursor model that survives reflow.
-- **Editor starts at the top of the file**, not at the line you were
-  viewing — the built-in editor is intentionally minimal (see
-  `crates/tui/src/editor.rs`); an external-editor integration is a
-  plausible alternative for users who want more.
+- **Editor starts at the top of the file for Markdown documents**: the
+  opening cursor row now matches the line you were viewing for plain-text/
+  unknown files, but Markdown's Obsidian-style rendering doesn't keep a
+  1:1 line mapping to the raw source (headings, blank-line handling, etc.
+  can shift rows), so there's no correct row to seed the editor with there
+  yet — see `crates/tui/src/input.rs::viewed_source_row`. The built-in
+  editor is intentionally minimal otherwise (see `crates/tui/src/editor.rs`);
+  an external-editor integration is a plausible alternative for users who
+  want more.
 - **Images**: only local (non-`http`) images are rendered, as
   colored-halfblock approximations, gated on detecting truecolor support
   via environment variables (no blocking terminal queries, to avoid any
@@ -255,6 +260,9 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] `h` command-reference popup (searchable)
 - [x] Scrolling/keyboard navigation inside the `h` popup (`up`/`down`
       move the highlighted row, auto-scrolling on short terminals)
+- [x] Sync the editor's opening cursor position to the line you were
+      viewing, for plain-text/unknown files (Markdown's Obsidian-style
+      rendering doesn't preserve a 1:1 row mapping — see Roadmap)
 - [x] Line numbers in the Document pane's gutter
 - [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
       and a Highlight-vs-Bar current-line indicator
@@ -270,7 +278,6 @@ as part of any change that adds/fixes user-facing behavior.
       reset to `[theme] name`'s configured value and `Highlight` on
       restart
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
-- [ ] Sync the editor's opening cursor position to the line you were viewing
 - [ ] Horizontal scroll for the Edit-mode cursor locator: a column past
       the pane's right edge is currently clamped to the last visible
       column rather than scrolling the view (same root cause as the
@@ -315,9 +322,9 @@ logic are all plain functions/structs testable in isolation:
   code blocks, blockquotes, tables, links, images, thematic breaks) and
   checkbox toggling (index-based, nested lists, no-trailing-newline files).
 - `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
-  Shift-selection extend/normalize/delete, select-all), color parsing, and
-  Markdown-AST-to-terminal-lines rendering (task index tracking, image
-  fallback, gutter width, and the selection-highlight span-splitting
-  logic), and the `h` popup's query-filtering logic.
+  Shift-selection extend/normalize/delete, select-all, cursor-row seeking),
+  color parsing, and Markdown-AST-to-terminal-lines rendering (task index
+  tracking, image fallback, gutter width, and the selection-highlight
+  span-splitting logic), and the `h` popup's query-filtering logic.
 
 Run everything with `cargo test --workspace`.

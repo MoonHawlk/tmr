@@ -109,6 +109,15 @@ impl Editor {
         self.cursor_col = self.current_line_len();
     }
 
+    /// Moves the cursor to the start of `row` (clamped to the last valid
+    /// row), with no selection side effects — used to seed the editor when
+    /// entering Edit mode from a known source-line position (what the
+    /// Normal-mode view was showing) instead of always starting at (0, 0).
+    pub fn set_cursor_row(&mut self, row: usize) {
+        self.cursor_row = row.min(self.lines.len().saturating_sub(1));
+        self.cursor_col = 0;
+    }
+
     /// Deletes the selected text (if any), moving the cursor to where the
     /// selection started. Returns whether anything was deleted, so callers
     /// (e.g. "typing replaces the selection") know whether to skip their
@@ -403,5 +412,20 @@ mod tests {
         assert!(ed.delete_selection());
         assert_eq!(ed.to_content(), "");
         assert_eq!(ed.cursor(), (0, 0));
+    }
+
+    #[test]
+    fn set_cursor_row_moves_to_the_start_of_that_row() {
+        let mut ed = Editor::new("abc\ndef\nghi", 4);
+        ed.move_end();
+        ed.set_cursor_row(2);
+        assert_eq!(ed.cursor(), (2, 0));
+    }
+
+    #[test]
+    fn set_cursor_row_clamps_past_the_last_line() {
+        let mut ed = Editor::new("abc\ndef", 4);
+        ed.set_cursor_row(50);
+        assert_eq!(ed.cursor(), (1, 0));
     }
 }

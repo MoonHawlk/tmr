@@ -161,6 +161,11 @@ fn handle_action(
         }
         "edit" if ui.focus == Focus::Document => {
             if app.document().is_some() {
+                if let Some(row) = viewed_source_row(app, ui) {
+                    if let Some(editor) = ui.editor.as_mut() {
+                        editor.set_cursor_row(row);
+                    }
+                }
                 ui.mode = Mode::Edit;
                 refresh_rendered(ui, app, palette, image_cap, width);
             }
@@ -249,6 +254,20 @@ fn handle_action(
 
 fn tab_width_of(app: &App) -> usize {
     app.config.editor.tab_width
+}
+
+/// `ui.doc_cursor` only maps 1:1 onto a raw source line for formats whose
+/// Normal-mode view *is* the raw source, one line per `RenderedLine`
+/// (`render_plain_text` — see `refresh_rendered`'s doc comment). Markdown's
+/// Obsidian-style rendering doesn't preserve that mapping (headings,
+/// blank-line handling, etc. can shift rows), so there's no correct row to
+/// seed the editor with there yet; `None` leaves the editor's cursor where
+/// it already was, matching prior behavior for that format.
+fn viewed_source_row(app: &App, ui: &UiState) -> Option<usize> {
+    match app.document()?.format {
+        DocumentFormat::PlainText | DocumentFormat::Unknown => Some(ui.doc_cursor),
+        DocumentFormat::Markdown => None,
+    }
 }
 
 fn activate_selected(

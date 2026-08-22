@@ -9,6 +9,13 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Entering Edit mode now seeds the editor's cursor at the line you were
+  viewing in Normal mode, for plain-text/unknown documents — previously it
+  always started at `(0, 0)`. Markdown documents are unchanged for now:
+  the Obsidian-style rendering doesn't keep a 1:1 row mapping back to the
+  raw source, so there's no correct row to seed yet. See
+  `Editor::set_cursor_row` (`crates/tui/src/editor.rs`) and
+  `input.rs::viewed_source_row`.
 - The `h` command-reference popup now supports `up`/`down` to move a
   highlighted row, which auto-scrolls into view via ratatui's `ListState`
   on terminals too short to fit every entry — previously the list just
