@@ -8,7 +8,7 @@ use crate::layout::compute_panes;
 use crate::settings;
 use crate::state::{Mode, UiState};
 use crate::theme::Palette;
-use crate::widgets::{document_view, file_list, side_panel, status_bar};
+use crate::widgets::{document_view, file_list, side_panel, status_bar, timer_bar};
 
 pub fn draw(
     frame: &mut Frame,
@@ -19,7 +19,11 @@ pub fn draw(
 ) {
     let border = app.config.ui.border;
     let has_widgets = app.widgets().iter().any(|w| w.is_enabled());
-    let panes = compute_panes(frame.area(), has_widgets);
+    let panes = compute_panes(frame.area(), has_widgets, app.config.ui.timer);
+
+    if let Some(timer_area) = panes.timer {
+        timer_bar::draw(frame, timer_area, palette);
+    }
 
     file_list::draw(
         frame,

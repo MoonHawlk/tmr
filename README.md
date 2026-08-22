@@ -60,6 +60,9 @@ tmr ~/notes
   marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
   needed, and both choices are persisted to `config.toml` as you change
   them, so they survive a restart too.
+- An optional Timer bar (`[ui] timer = true`): a thin strip at the very
+  top of the TUI, above the Files/Document panes, showing the current
+  time (UTC), updated live once a second. Off by default.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -159,7 +162,8 @@ cp config/config.example.toml ~/.config/tmr/config.toml
 ```
 
 Key sections: `[workspace]` (default directory), `[theme]` (which palette
-to use), `[ui]` (border style, hidden files, current-line indicator),
+to use), `[ui]` (border style, hidden files, current-line indicator, the
+`timer` bar),
 `[editor]` (tab width), `[keys]` (any keybinding override), `[addons]` /
 `[widgets]` (which compiled-in addons/widgets to enable by id).
 
@@ -308,7 +312,9 @@ as part of any change that adds/fixes user-facing behavior.
       the status should be reset, and displayed the default "helper" bar. — fixed: transient status
       messages now carry a timestamp and auto-revert to the default helper bar after a few seconds
       (`UiState::expire_status`, `crates/tui/src/lib.rs::run_loop`).
-- [ ] Add a new "config" possibility, name timer, showing the current time at the top of the TUI, between the bars.
+- [x] Add a new "config" possibility, name timer, showing the current time at the top of the TUI, between the bars.
+      — `[ui] timer = true`: a thin, live-updating UTC clock bar above the Files/Document panes
+      (`crates/tui/src/widgets/timer_bar.rs`, `tmr_core::datetime`).
 - [ ] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
 - [ ] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
       a mini-preview of a calender with the current month adjusted and aligned.

@@ -45,6 +45,11 @@ pub struct UiConfig {
     /// doesn't need to know that type exists. An unrecognized value falls
     /// back to `"highlight"`, the same as an absent one.
     pub line_indicator: String,
+    /// Shows a thin bar with the current time (UTC) at the very top of the
+    /// TUI, above the Files/Document panes and below the terminal's top
+    /// edge — sitting between those and the Status bar. Off by default so
+    /// the default screen matches the README's layout diagram exactly.
+    pub timer: bool,
 }
 
 impl Default for UiConfig {
@@ -53,6 +58,7 @@ impl Default for UiConfig {
             border: BorderStyle::Ascii,
             show_hidden: false,
             line_indicator: "highlight".to_string(),
+            timer: false,
         }
     }
 }

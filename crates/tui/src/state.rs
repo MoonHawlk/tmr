@@ -306,12 +306,14 @@ mod tests {
 
     #[test]
     fn expire_status_clears_a_message_older_than_the_ttl() {
-        let mut ui = UiState::default();
-        ui.status = Some((
-            "Saved".to_string(),
-            StatusLevel::Success,
-            Instant::now() - STATUS_TTL - Duration::from_millis(1),
-        ));
+        let mut ui = UiState {
+            status: Some((
+                "Saved".to_string(),
+                StatusLevel::Success,
+                Instant::now() - STATUS_TTL - Duration::from_millis(1),
+            )),
+            ..UiState::default()
+        };
         ui.expire_status();
         assert!(ui.status.is_none());
     }

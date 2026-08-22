@@ -2,6 +2,7 @@ pub mod addon;
 pub mod app;
 pub mod command;
 pub mod config;
+pub mod datetime;
 pub mod document;
 pub mod error;
 pub mod events;

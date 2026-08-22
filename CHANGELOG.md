@@ -9,6 +9,13 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- An optional Timer bar: `[ui] timer = true` draws a thin strip at the top
+  of the TUI, above the Files/Document panes, with the current time (UTC),
+  updating live once a second. Backed by a new dependency-free calendar/
+  clock module, `tmr_core::datetime` (Howard Hinnant's civil-calendar
+  algorithm), also intended for the upcoming Calendar window. See
+  `crates/tui/src/widgets/timer_bar.rs` and `layout::compute_panes`'s new
+  `timer` slot.
 - `setup.sh`: quick environment setup — checks for a Rust toolchain
   (offers to install via `rustup` if missing), fetches dependencies,
   builds the release binary, and optionally installs it onto `PATH` and
@@ -17,19 +24,6 @@ the README's [TODO section](README.md#todo) for what's still open.
   `cargo check`/`clippy`/`fmt --check`/`test`, a debug build, and
   (`./debug.sh run [DIR]`) launching tmr with `RUST_BACKTRACE=full`
   against `sandbox/` by default.
-
-### Fixed
-
-- Status bar no longer gets stuck on a transient message (e.g. "Saved",
-  "Deleted") until the next command — it now reverts to the default helper
-  bar on its own after a few seconds. `UiState::status` carries the
-  `Instant` it was set, `UiState::expire_status` clears it once stale, and
-  `lib.rs::run_loop` polls at a short interval while a status is pending so
-  the revert happens close to on time even when idle. See
-  `crates/tui/src/state.rs`.
-
-### Added
-
 - Config/theme hot-reload: `ctrl+r` (`reload`) now re-reads `config.toml`
   and re-applies theme, keymap overrides, editor tab width, and the
   Settings window's `Default`/line-indicator baseline — in addition to
@@ -150,6 +144,13 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Fixed
 
+- Status bar no longer gets stuck on a transient message (e.g. "Saved",
+  "Deleted") until the next command — it now reverts to the default helper
+  bar on its own after a few seconds. `UiState::status` carries the
+  `Instant` it was set, `UiState::expire_status` clears it once stale, and
+  `lib.rs::run_loop` polls at a short interval while a status is pending so
+  the revert happens close to on time even when idle. See
+  `crates/tui/src/state.rs`.
 - The `h` command-reference popup stopped opening for the rest of the
   session as soon as any file was opened once — it was gated to only
   fire when `app.document().is_none()`, and there's no "close document"

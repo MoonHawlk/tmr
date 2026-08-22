@@ -28,6 +28,9 @@ show_hidden = false
 # live from the in-app Settings window (`s`), which writes its choice
 # straight back here.
 line_indicator = "highlight"
+# Show a thin bar with the current time (UTC) at the top of the TUI, above
+# the Files/Document panes.
+timer = false
 
 [editor]
 # Number of spaces inserted by Tab in the built-in editor.

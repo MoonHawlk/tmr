@@ -98,7 +98,12 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
             .widgets()
             .iter()
             .any(|w| w.is_enabled() && w.tick_interval().is_some());
-        let timeout = if has_ticking_widget {
+        // The Timer bar reads the clock fresh on every draw rather than
+        // keeping its own tick state, so it just needs the loop to keep
+        // redrawing periodically while it's enabled — same as a ticking
+        // widget.
+        let needs_periodic_redraw = has_ticking_widget || app.config.ui.timer;
+        let timeout = if needs_periodic_redraw {
             Duration::from_millis(500)
         } else if ui.status.is_some() {
             // A status message is pending expiry: poll periodically instead
@@ -131,6 +136,7 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
         let panes = compute_panes(
             ratatui::layout::Rect::new(0, 0, size.width, size.height),
             has_widgets,
+            app.config.ui.timer,
         );
         let border = app.config.ui.border;
         let (doc_width, doc_height) = inner_size(panes.document, border);

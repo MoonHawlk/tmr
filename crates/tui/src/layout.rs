@@ -11,17 +11,32 @@ use crate::theme::Palette;
 /// terminal size so both drawing and input handling (which needs to know
 /// the document pane's height/width for scrolling and rendering) agree.
 pub struct Panes {
+    pub timer: Option<Rect>,
     pub files: Rect,
     pub document: Rect,
     pub side: Option<Rect>,
     pub status: Rect,
 }
 
-pub fn compute_panes(size: Rect, has_widgets: bool) -> Panes {
+pub fn compute_panes(size: Rect, has_widgets: bool, show_timer: bool) -> Panes {
+    let outer_constraints = if show_timer {
+        vec![
+            Constraint::Length(1),
+            Constraint::Min(0),
+            Constraint::Length(3),
+        ]
+    } else {
+        vec![Constraint::Min(0), Constraint::Length(3)]
+    };
     let outer = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(0), Constraint::Length(3)])
+        .constraints(outer_constraints)
         .split(size);
+    let (timer, main_area, status) = if show_timer {
+        (Some(outer[0]), outer[1], outer[2])
+    } else {
+        (None, outer[0], outer[1])
+    };
 
     let main_constraints = if has_widgets {
         vec![
@@ -35,13 +50,14 @@ pub fn compute_panes(size: Rect, has_widgets: bool) -> Panes {
     let main = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(main_constraints)
-        .split(outer[0]);
+        .split(main_area);
 
     Panes {
+        timer,
         files: main[0],
         document: main[1],
         side: if has_widgets { Some(main[2]) } else { None },
-        status: outer[1],
+        status,
     }
 }
 
