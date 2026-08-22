@@ -3,12 +3,28 @@
 All notable changes to this project are documented here. Loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This file is
 updated as part of every change that touches user-facing behavior — see
-the README's [TODO section](README.md#todo) for what's still open.
+[docs/todo.md](docs/todo.md) for what's still open.
 
 ## [Unreleased]
 
 ### Changed
 
+- `README.md` cut down to a minimal landing page — the animated `docs/`
+  SVG banner, a one-line pitch, the ASCII preview, install/build/run
+  commands, and a links list — with everything else (Features,
+  Keybindings, Configuration, Architecture, Roadmap, TODO, Development,
+  Tests) moved into its own file under `docs/`. Each doc links back to
+  the README and to related docs, so nothing that was previously in the
+  README is gone, just relocated.
+- `docs/architecture.md` gained a "How it works" section: a Mermaid
+  flowchart of the runtime data flow — `tmr` binary startup (CLI → config/
+  theme/keymap load → widget/addon registration → TUI start), the
+  `tmr-tui` event loop (key event → `Command` → dispatch), `tmr-core`'s
+  `App::dispatch` fan-out (workspace/document ops, Widget/Addon hooks →
+  `AppEvent`), and the three `DocumentFormat` rendering paths (`.md` via
+  `tmr-markdown`'s AST, `.json` via `json_view`'s tokenizer when
+  `json_highlight` is on, everything else via `render_plain_text`) — as a
+  visual companion to the existing prose/crate-table explanation.
 - Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE)
   (was MIT): free for any noncommercial purpose, commercial use requires
   a separate agreement. `Cargo.toml`'s `license` field now reads

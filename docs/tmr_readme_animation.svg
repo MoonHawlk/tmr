@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="100%" height="100%">
+  <style>
+    /* Sequence animations to show one command group at a time */
+    .cmd-1 { animation: cycle1 16s infinite; }
+    .cmd-2 { animation: cycle2 16s infinite; }
+    .cmd-3 { animation: cycle3 16s infinite; }
+    .cmd-4 { animation: cycle4 16s infinite; }
+    
+    @keyframes cycle1 { 0%, 25% { opacity: 1; } 25.01%, 100% { opacity: 0; } }
+    @keyframes cycle2 { 0%, 25% { opacity: 0; } 25.01%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+    @keyframes cycle3 { 0%, 50% { opacity: 0; } 50.01%, 75% { opacity: 1; } 75.01%, 100% { opacity: 0; } }
+    @keyframes cycle4 { 0%, 75% { opacity: 0; } 75.01%, 100% { opacity: 1; } }
+
+    /* Typing animations specific to the character length of each folder name */
+    .type-1 { animation: type1 4s infinite; }
+    .type-2 { animation: type2 4s infinite; }
+    .type-3 { animation: type3 4s infinite; }
+    .type-4 { animation: type4 4s infinite; }
+
+    @keyframes type1 { 0%, 10% { transform: translateX(0); } 35%, 85% { transform: translateX(185px); } 95%, 100% { transform: translateX(0); } }
+    @keyframes type2 { 0%, 10% { transform: translateX(0); } 35%, 85% { transform: translateX(185px); } 95%, 100% { transform: translateX(0); } }
+    @keyframes type3 { 0%, 10% { transform: translateX(0); } 35%, 85% { transform: translateX(125px); } 95%, 100% { transform: translateX(0); } }
+    @keyframes type4 { 0%, 10% { transform: translateX(0); } 35%, 85% { transform: translateX(160px); } 95%, 100% { transform: translateX(0); } }
+
+    /* Blinking cursor effect */
+    .cursor-blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  </style>
+
+  <!-- Window Shadow & Background -->
+  <rect x="10" y="10" width="580" height="280" rx="12" fill="#1E1E1E" stroke="#333" stroke-width="2"/>
+  
+  <!-- Title Bar -->
+  <path d="M 10 22 Q 10 10 22 10 L 578 10 Q 590 10 590 22 L 590 40 L 10 40 Z" fill="#2D2D2D" />
+  
+  <!-- macOS Style Window Buttons -->
+  <circle cx="35" cy="25" r="7" fill="#FF5F56" />
+  <circle cx="60" cy="25" r="7" fill="#FFBD2E" />
+  <circle cx="85" cy="25" r="7" fill="#27C93F" />
+  
+  <!-- Window Title -->
+  <text x="300" y="29" fill="#888888" font-family="monospace" font-size="14" text-anchor="middle">bash - tmr</text>
+  
+  <g font-family="monospace" font-size="20">
+    <!-- Static Prompt Base -->
+    <text x="40" y="90" fill="#50FA7B">root@moonhawlk<tspan fill="#FFFFFF">:</tspan><tspan fill="#8BE9FD">~/home</tspan><tspan fill="#FFFFFF">$</tspan></text>
+    
+    <!-- COMMAND 1: ~/workbench -->
+    <g class="cmd-1">
+      <text x="310" y="90" fill="#F1FA8C">tmr ~/workbench</text>
+      <!-- Nested SVG isolates the cover so it can't draw over the terminal border -->
+      <svg x="310" y="70" width="260" height="25">
+        <g class="type-1">
+          <rect x="0" y="0" width="260" height="25" fill="#1E1E1E" />
+          <rect x="0" y="2" width="12" height="22" fill="#F1FA8C" class="cursor-blink" />
+        </g>
+      </svg>
+    </g>
+
+    <!-- COMMAND 2: ~/Documents -->
+    <g class="cmd-2">
+      <text x="310" y="90" fill="#F1FA8C">tmr ~/Documents</text>
+      <svg x="310" y="70" width="260" height="25">
+        <g class="type-2">
+          <rect x="0" y="0" width="260" height="25" fill="#1E1E1E" />
+          <rect x="0" y="2" width="12" height="22" fill="#F1FA8C" class="cursor-blink" />
+        </g>
+      </svg>
+    </g>
+
+    <!-- COMMAND 3: ~/temp -->
+    <g class="cmd-3">
+      <text x="310" y="90" fill="#F1FA8C">tmr ~/temp</text>
+      <svg x="310" y="70" width="260" height="25">
+        <g class="type-3">
+          <rect x="0" y="0" width="260" height="25" fill="#1E1E1E" />
+          <rect x="0" y="2" width="12" height="22" fill="#F1FA8C" class="cursor-blink" />
+        </g>
+      </svg>
+    </g>
+
+    <!-- COMMAND 4: ~/sandbox -->
+    <g class="cmd-4">
+      <text x="310" y="90" fill="#F1FA8C">tmr ~/sandbox</text>
+      <svg x="310" y="70" width="260" height="25">
+        <g class="type-4">
+          <rect x="0" y="0" width="260" height="25" fill="#1E1E1E" />
+          <rect x="0" y="2" width="12" height="22" fill="#F1FA8C" class="cursor-blink" />
+        </g>
+      </svg>
+    </g>
+  </g>
+  
+  <!-- Main TMR Logo Text -->
+  <text x="40" y="190" fill="#BD93F9" font-family="monospace" font-weight="900" font-size="80" letter-spacing="4">
+    TMR<tspan fill="#FFFFFF" class="cursor-blink">_</tspan>
+  </text>
+  
+  <!-- Subtext / System Status -->
+  <text x="40" y="250" fill="#6272A4" font-family="monospace" font-size="16">
+    // Workspace initialized. Managing directories...
+  </text>
+</svg>

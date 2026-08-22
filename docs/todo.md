@@ -1,0 +1,85 @@
+# TODO
+
+Tracked here as a plain checklist. Items are grouped by priority and
+purpose rather than implementation order.
+
+Update this list, and `CHANGELOG.md`, as part of any change that adds or
+fixes user-facing behavior.
+
+### Bugs / Fixes
+
+- [x] (BUG) Make the newly available border styles selectable from the Settings window.
+      — new "Border" row (ASCII/Rounded/Double/None), cycled with `left`/`right`, applied live
+      and persisted to `[ui] border` (`crates/tui/src/settings.rs`,
+      `crates/tui/src/input.rs::handle_settings_key`).
+
+### Core UX
+
+- [ ] Double-click/word-level selection
+- [ ] Word-wrap for long lines (currently clipped — see [Roadmap](roadmap.md))
+- [ ] Undo/redo in the built-in editor
+- [ ] Mouse support (click to select/open, scroll, drag-to-select text)
+
+### Search
+
+- [ ] Recursive/global search across the workspace
+
+### Markdown
+
+- [ ] Syntax highlighting inside fenced code blocks
+
+### Images
+
+- [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
+
+### Formats
+
+- [x] Rendering support for a second document format (TXT/JSON/YAML), to
+      exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
+      ONLY ALLOW THIS IF THE USED SET AS POSSIBLE AT CONFIG WINDOW
+      — JSON: `[ui] json_highlight`, off by default, toggle in the Settings window or config.toml
+      (`crates/tui/src/json_view.rs`, `DocumentFormat::Json`). TXT/YAML remain open.
+
+### Productivity
+
+- [x] Quick-TODO window backed by a persistent task file.
+
+      The Quick-TODO should provide a minimal interface focused on creating,
+      checking and organizing simple tasks without requiring a Markdown
+      document to be opened.
+
+      Tasks should be stored persistently so they can later be searched,
+      filtered and reused by other TMR features.
+
+      Add an application-level export action (`Ctrl+E`) that asks for
+      confirmation and exports the current and historical tasks to `.tsv`.
+
+      — `ctrl+t` opens a minimal task list (create/check/reorder/delete), independent of any
+      open document. Tasks persist to `~/.config/tmr/tasks.tsv` (TSV, one task per line: id,
+      status, created_at, done_at, text) via `tmr_core::tasks::TaskStore`, reachable through the
+      existing `Command → App::dispatch → AppEvent` flow like everything else. Deletion is soft
+      (marked `deleted`, kept on disk) so the full history stays available for later search/
+      filtering and for `ctrl+e`'s export, which writes every task ever recorded to
+      `~/.config/tmr/tasks-export.tsv` after a confirm dialog. See `crates/tui/src/todo_view.rs`,
+      `crates/tui/src/input.rs::handle_todo_key`, and `tmr_core::tasks`.
+
+### Customization
+
+- [ ] Expand the configuration system with additional TUI customization,
+      including ASCII icons, font-related terminal options, highlights and
+      other visual properties.
+
+      All supported options should remain configurable without modifying
+      the source code and, where appropriate, should be exposed through
+      the Settings window.
+
+### Roadmap / Product Direction
+
+- [ ] Add a dedicated section to the README describing future features
+      and the long-term purpose of TMR.
+
+      This section should distinguish implemented functionality, planned
+      functionality and experimental ideas, keeping the project's scope
+      clear as it grows.
+
+[← Back to README](../README.md)

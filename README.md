@@ -1,3 +1,5 @@
+![tmr](docs/tmr_readme_animation.svg)
+
 # tmr
 
 I'm the worst person to create good names... So, TMR ( Terminal Markdown Reader )
@@ -5,10 +7,6 @@ I'm the worst person to create good names... So, TMR ( Terminal Markdown Reader 
 A fast, low-footprint terminal UI for browsing, reading and editing
 Markdown notes — a small productivity engine for text in the terminal,
 with Markdown as its first supported format.
-
-```
-tmr ~/notes
-```
 
 ```
 + FILES ---------------------++ DOCUMENT ------------------------------------+
@@ -23,96 +21,6 @@ tmr ~/notes
 | note1.md  tab focus · enter open/edit · space toggle · / search · q quit      |
 +---------------------------------------------------------------------------------+
 ```
-
-## Features (v1)
-
-- Navigate directories and list `.md` files.
-- Open, view, edit, save, create and delete files (delete asks to confirm).
-- Obsidian-style Markdown rendering, **for `.md` files only** — raw syntax
-  markers (`#`, `**`, `` ` ``, `[]()`, `> `) are never shown; each element
-  gets its own glyph, color and weight instead: heading levels get
-  decreasing prominence (H1 bold+underlined+ruled, down to muted italic at
-  H6), checkboxes render as `☐`/`☑`, nested bullets vary (`•`/`◦`/`▪`),
-  blockquotes get a `▎` bar, code blocks a `▏` bar, inline code a padded
-  pill, links are colored+underlined. Any other format (`.txt`, unknown
-  extensions) is shown as plain, untouched text — no parsing at all.
-- Interactive task-list checkboxes (`- [ ]` / `- [x]`) — toggle with the
-  cursor, persisted straight to the `.md` file.
-- A live cursor locator while editing: raw source view, auto-scroll, a
-  real blinking terminal caret, and a `Ln X, Col Y` status readout, so
-  you always know where a keystroke will land.
-- Text selection in Edit mode: hold `shift` with the arrow/`home`/`end`
-  keys to select a range, the same way a shell prompt or a plain-text CLI
-  editor does. `Backspace`/`Delete` removes the selection; typing a
-  character replaces it. Selected text is visually reverse-highlighted.
-  `ctrl+a` selects the entire document the same way. `ctrl+c`/`ctrl+x`
-  copy/cut the current selection to the system clipboard via an OSC 52
-  terminal escape sequence — no native clipboard dependency, and it works
-  over SSH/tmux, where a native clipboard API has no path back to the
-  desktop.
-- Line numbers in the Document pane's gutter (both the normal rendered
-  view and the raw Edit-mode view).
-- A searchable command-reference popup (`h`), with `up`/`down` to move the
-  highlighted row and auto-scroll on terminals too short to fit every
-  entry at once.
-- A Settings window (`s`) for live interface customization: pick a color
-  theme (`Default` / `Dark` / `Light (grey)`), a pane border style
-  (`ASCII` / `Rounded` / `Double` / `None`), how the current line is
-  marked (full-line `Highlight` or a `Bar` gutter marker), whether the
-  Timer bar is shown (`On`/`Off`), and whether `.json` files get syntax
-  highlighting (`On`/`Off`) — no restart needed, and all five choices are
-  persisted to `config.toml` as you change them, so they survive a
-  restart too.
-- An optional Timer bar (`[ui] timer = true`, or toggle it live from the
-  Settings window): a thin strip at the very top of the TUI, above the
-  Files/Document panes, showing the current time (UTC), updated live once
-  a second. Off by default.
-- A `"double"` border style (`[ui] border = "double"`) alongside the
-  default `"ascii"`, `"rounded"`, and `"none"` — double box-drawing lines
-  (`╔═╗`/`║`/`╚═╝`) for a denser, more application-panel look than the
-  plain `+---+` terminal sketch.
-- Optional JSON syntax highlighting (`[ui] json_highlight = true`, or
-  toggle it live from the Settings window): `.json` files get keys,
-  strings, numbers, and `true`/`false`/`null` colored distinctly instead
-  of being shown as plain text. Off by default, so a `.json` file renders
-  exactly as it always has unless you opt in — see
-  `crates/tui/src/json_view.rs`.
-- A Calendar window (`alt+c`): a small popup with a mini month-preview
-  grid, aligned like a standard calendar (weekday columns, today's day
-  highlighted). `left`/`right` moves to the adjacent month, `esc` closes.
-- A Quick-TODO window (`ctrl+t`): a minimal task list, independent of any
-  open document — create, check off, reorder and (soft-)delete simple
-  tasks without navigating to or opening a Markdown file. `ctrl+n` starts
-  a new task, `space`/`enter` toggles it done, `shift+↑`/`shift+↓`
-  reorders it, `d` deletes it (recoverably — see below), `esc` closes.
-  Tasks persist to `~/.config/tmr/tasks.tsv`, independent of the current
-  workspace, so they're available across sessions and directories. A
-  deleted task is soft-deleted (kept, marked `deleted`) rather than
-  erased, so the full history stays available to `ctrl+e` (below) and to
-  future features (search, filtering). See
-  `crates/tui/src/todo_view.rs` and `tmr_core::tasks`.
-- An application-level task export (`ctrl+e`, any time, regardless of
-  focus): asks for confirmation, then writes every task ever recorded —
-  open, done, and deleted — to `~/.config/tmr/tasks-export.tsv` as TSV
-  with a header row.
-- Filename search and in-document text search.
-- Image rendering when the terminal supports truecolor (Unicode half-block
-  approximation), with an elegant `[image: name.png]` fallback otherwise.
-- Fully external configuration: theme colors, borders, keybindings,
-  workspace default, addons/widgets to enable — nothing is hardcoded.
-- Architecture prepared for more document formats, TUI widgets and addons,
-  without those being fully built out in v1 (see Roadmap).
-
-### Quick setup
-
-`./setup.sh` checks for a Rust toolchain (offering to install one via
-`rustup` if missing), fetches dependencies, builds the release binary, and
-optionally installs it onto your `PATH` and creates
-`~/.config/tmr/config.toml` from the example — see `./setup.sh --help`.
-`./debug.sh` is the day-to-day dev-loop companion: toolchain/config info,
-`cargo check`/`clippy`/`fmt --check`/`test`, a debug build, and (with
-`./debug.sh run [DIR]`) launching tmr itself with `RUST_BACKTRACE=full`
-against `sandbox/` by default — see `./debug.sh --help`.
 
 ## Install / Build
 
@@ -131,319 +39,31 @@ Optionally put it on your `PATH`:
 install -m 755 target/release/tmr ~/.local/bin/tmr
 ```
 
+Or use `./setup.sh` to do all of the above interactively — see
+[Development](docs/development.md).
+
 ## Run
 
 ```sh
 tmr              # opens the current working directory
 tmr ~/notes       # opens a specific directory
+tmr sandbox       # try it risk-free, see sandbox/README.md
 tmr --help
 ```
 
 If no directory is given, tmr uses `[workspace] default_dir` from
-`config.toml` if set, otherwise the current working directory — the same
-convention most terminal file/note browsers use.
+`config.toml` if set, otherwise the current working directory.
 
-### Try it risk-free: `sandbox/`
+## Docs
 
-The repo ships a [`sandbox/`](sandbox/) directory just for trying tmr out
-— open/edit/create/delete files there and it can't touch your real notes:
-
-```sh
-tmr sandbox
-```
-
-Only the example files it ships with are tracked in git; anything else
-you create inside `sandbox/` while testing is gitignored, so experimenting
-never dirties `git status`. See [`sandbox/README.md`](sandbox/README.md).
-
-## Keybindings
-
-All of these are remappable — see [Configuration](#configuration). Defaults:
-
-| Key         | Action                                            |
-|-------------|----------------------------------------------------|
-| `tab`       | Switch focus between Files and Document panes      |
-| `up`/`down` | Move selection (files) or cursor (document)        |
-| `right`/`enter` | Open selected entry (dir → enter it, file → open); in the document pane, `enter` starts editing |
-| `left`      | Go to parent directory (Files pane)                |
-| `space`     | Toggle the task checkbox under the cursor           |
-| `ctrl+s`    | Save (in Edit mode)                                 |
-| `esc`       | Cancel dialog / leave Edit mode                     |
-| `/`         | Search (filenames if Files is focused, in-document text if Document is focused) |
-| `ctrl+n`    | New file (prompts for a name)                       |
-| `r`         | Rename selected file                                |
-| `d`         | Delete selected file (asks to confirm with `y`)      |
-| `ctrl+r`    | Reload the current directory listing, and re-read `config.toml` (theme, keymap, editor, ui settings) |
-| `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
-| `ctrl+a`    | Edit mode only: select the entire document              |
-| `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
-| `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
-| `s`         | Open the Settings window (theme, border style, line indicator, timer bar, JSON highlighting); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
-| `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
-| `ctrl+t`    | Open the Quick-TODO window; `ctrl+n` new task, `space`/`enter` toggle done, `shift+↑`/`shift+↓` reorder, `d` delete, `esc` close |
-| `ctrl+e`    | Export all tasks (current + historical) to `.tsv`, asking for confirmation first |
-| `q`         | Quit                                                 |
-
-## Configuration
-
-tmr reads `~/.config/tmr/config.toml` (or `$XDG_CONFIG_HOME/tmr/config.toml`).
-A missing file is not an error — every setting has a built-in default. See
-[`config/config.example.toml`](config/config.example.toml) for a fully
-annotated copy; copy it to get started:
-
-```sh
-mkdir -p ~/.config/tmr
-cp config/config.example.toml ~/.config/tmr/config.toml
-```
-
-Key sections: `[workspace]` (default directory), `[theme]` (which palette
-to use), `[ui]` (border style, hidden files, current-line indicator, the
-`timer` bar, JSON highlighting),
-`[editor]` (tab width), `[keys]` (any keybinding override), `[addons]` /
-`[widgets]` (which compiled-in addons/widgets to enable by id).
-
-The Quick-TODO window's tasks aren't part of `config.toml` — they're
-their own file, `~/.config/tmr/tasks.tsv` (next to `config.toml`, since
-tasks are an application-level concern independent of any one workspace).
-`ctrl+e` exports the full history to a sibling `tasks-export.tsv` in the
-same directory.
-
-### Themes
-
-`[theme] name = "dark"` (the default), `"light"`, or `"grey"` select a
-built-in palette — `grey` is a neutral, monochrome light theme, distinct
-from `light`'s blue/lavender tint. Any other name is looked up at
-`~/.config/tmr/themes/<name>.toml` — see
-[`config/themes/dark.toml`](config/themes/dark.toml),
-[`config/themes/light.toml`](config/themes/light.toml), and
-[`config/themes/grey.toml`](config/themes/grey.toml) for the format
-(plain `foreground`/`background`/`accent`/`border`/`muted`/`success`/
-`warning`/`error` hex colors). Copy one, tweak the colors, and point
-`[theme] name` at your new file's name — no rebuild needed. You can also
-pick `Dark`/`Light (grey)` from the in-app Settings window (`s`) instead —
-see [Keybindings](#keybindings); that switch is live and, as of the
-choice you make, also written straight back to `[theme] name` in
-`config.toml` (along with `[ui] border`, `[ui] line_indicator`,
-`[ui] timer` and `[ui] json_highlight`) — see
-`tmr_core::config::persist_settings`, which edits just those keys via
-`toml_edit` so the rest of your file (comments included) is left alone.
-
-## Architecture
-
-```
-tmr/                    binary crate: CLI parsing, config/theme loading,
-                         wiring addons/widgets, handing off to tmr-tui.
-crates/core/  (tmr-core) the engine: workspace/filesystem ops, the
-                         Document model, config, theme, keymap, the
-                         Command → App::dispatch → AppEvent flow, and the
-                         Widget/Addon trait abstractions. No UI dependency.
-crates/markdown/         (tmr-markdown) Markdown source → a renderer-
-              (tmr-markdown) agnostic Block/Inline AST (pulldown-cmark
-                         under the hood), plus in-place checkbox toggling
-                         on raw source text. No UI dependency either.
-crates/tui/   (tmr-tui)  ratatui/crossterm presentation layer: converts
-                         the AST to styled terminal lines, owns the
-                         interaction/dialog state machine, the built-in
-                         editor, image rendering, and the event loop.
-```
-
-The core never imports ratatui or crossterm — every operation flows
-`Key event → Command → App::dispatch → AppEvent → redraw`, matching the
-brief: the engine owns state and operations, the TUI only owns
-presentation and translates raw terminal events into that engine's
-vocabulary. A different frontend could be built against `tmr-core` and
-`tmr-markdown` without touching either crate.
-
-**Widgets.** `tmr_core::widget::Widget` is a small trait (enable/disable,
-configure, tick, receive events, render as plain text lines) that a side
-panel in the TUI draws generically. One example ships (`ClockWidget`) to
-prove the trait works end to end — enable it with `[widgets] enabled =
-["clock"]`. Building a real widget (a quick TODO list, a calendar) means
-implementing the trait and registering it in `main.rs`; no TUI changes
-required.
-
-**Addons.** `tmr_core::addon::Addon` is a trait (load hook, event hook,
-optional status-bar text) with **no dynamic loading** in this version —
-addons are Rust structs compiled into the binary and enabled via
-`[addons] enabled = [...]`. Rust's ABI instability makes `.so`-based
-plugins a poor fit for a v1; this trait is the seam a future dynamic- or
-WASM-based loader could sit behind without changing how addons are
-written. One example ships (`StatsAddon`, a session file-op counter).
-
-**Formats.** `tmr_core::document::DocumentFormat` distinguishes Markdown /
-JSON / plain text / unknown by extension, and the TUI dispatches on it
-(`crates/tui/src/input.rs::refresh_rendered`): `.md` gets the full
-Obsidian-style rendering via `tmr-markdown`, `.json` gets a syntax-
-highlighted rendering via `crates/tui/src/json_view.rs` **if** `[ui]
-json_highlight` is on (off by default — falls through to the plain-text
-path otherwise), and everything else falls through to
-`markdown_view::render_plain_text` — untouched text, no parsing.
-`json_view` is a self-contained line-local tokenizer rather than a
-`tmr-markdown`-style AST crate: unlike Markdown, a JSON line's styling
-doesn't depend on any block-level structure, so a per-line token scan is
-enough and there was no renderer-agnostic tree worth building for it. A
-format that *does* need block structure (YAML with nested mappings, say)
-is still the case the `tmr-markdown`-sibling-crate pattern was written
-for — see the `DocumentFormat`/`refresh_rendered` match either way; the
-core's document/save/open flow already doesn't care what format it's
-holding.
-
-## Roadmap / known limitations
-
-- **No word-wrap**: long lines are clipped at the pane edge rather than
-  wrapped, so the document cursor can address a stable line index for
-  checkbox toggling. Word-wrap is a reasonable follow-up but needs a
-  cursor model that survives reflow. Edit mode's raw-source view is the
-  one exception — it horizontally scrolls to follow the cursor past the
-  right edge (see `UiState::doc_hscroll`) — but the normal Obsidian-style
-  and plain-text Normal-mode views still just clip.
-- **Editor starts at the top of the file for Markdown documents**: the
-  opening cursor row now matches the line you were viewing for plain-text/
-  unknown files, but Markdown's Obsidian-style rendering doesn't keep a
-  1:1 line mapping to the raw source (headings, blank-line handling, etc.
-  can shift rows), so there's no correct row to seed the editor with there
-  yet — see `crates/tui/src/input.rs::viewed_source_row`. The built-in
-  editor is intentionally minimal otherwise (see `crates/tui/src/editor.rs`);
-  an external-editor integration is a plausible alternative for users who
-  want more.
-- **Images**: only local (non-`http`) images are rendered, as
-  colored-halfblock approximations, gated on detecting truecolor support
-  via environment variables (no blocking terminal queries, to avoid any
-  risk of hanging on an unusual terminal). Kitty/iTerm2/Sixel protocol
-  support is a natural next backend behind the existing `ImageBackend`
-  seam (`crates/tui/src/image_backend.rs`).
-- **Search** is filename substring / in-document line substring only, in
-  the current directory / current document — no recursive global search
-  or indexing (deliberately: the brief calls for not indexing the whole
-  workspace up front).
-- **No file-system watching** — the listing refreshes on navigation and
-  on the explicit `reload` action, not via polling or `inotify`.
-- Widgets/addons are compiled-in only (see Architecture above).
-
-## TODO
-
-Tracked here as a plain checklist. Items are grouped by priority and
-purpose rather than implementation order.
-
-Update this list, and `CHANGELOG.md`, as part of any change that adds or
-fixes user-facing behavior.
-
-### Bugs / Fixes
-
-- [x] (BUG) Make the newly available border styles selectable from the Settings window.
-      — new "Border" row (ASCII/Rounded/Double/None), cycled with `left`/`right`, applied live
-      and persisted to `[ui] border` (`crates/tui/src/settings.rs`,
-      `crates/tui/src/input.rs::handle_settings_key`).
-
-### Core UX
-
-- [ ] Double-click/word-level selection
-- [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
-- [ ] Undo/redo in the built-in editor
-- [ ] Mouse support (click to select/open, scroll, drag-to-select text)
-
-### Search
-
-- [ ] Recursive/global search across the workspace
-
-### Markdown
-
-- [ ] Syntax highlighting inside fenced code blocks
-
-### Images
-
-- [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
-
-### Formats
-
-- [x] Rendering support for a second document format (TXT/JSON/YAML), to
-      exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
-      ONLY ALLOW THIS IF THE USED SET AS POSSIBLE AT CONFIG WINDOW
-      — JSON: `[ui] json_highlight`, off by default, toggle in the Settings window or config.toml
-      (`crates/tui/src/json_view.rs`, `DocumentFormat::Json`). TXT/YAML remain open.
-
-### Productivity
-
-- [x] Quick-TODO window backed by a persistent task file.
-
-      The Quick-TODO should provide a minimal interface focused on creating,
-      checking and organizing simple tasks without requiring a Markdown
-      document to be opened.
-
-      Tasks should be stored persistently so they can later be searched,
-      filtered and reused by other TMR features.
-
-      Add an application-level export action (`Ctrl+E`) that asks for
-      confirmation and exports the current and historical tasks to `.tsv`.
-
-      — `ctrl+t` opens a minimal task list (create/check/reorder/delete), independent of any
-      open document. Tasks persist to `~/.config/tmr/tasks.tsv` (TSV, one task per line: id,
-      status, created_at, done_at, text) via `tmr_core::tasks::TaskStore`, reachable through the
-      existing `Command → App::dispatch → AppEvent` flow like everything else. Deletion is soft
-      (marked `deleted`, kept on disk) so the full history stays available for later search/
-      filtering and for `ctrl+e`'s export, which writes every task ever recorded to
-      `~/.config/tmr/tasks-export.tsv` after a confirm dialog. See `crates/tui/src/todo_view.rs`,
-      `crates/tui/src/input.rs::handle_todo_key`, and `tmr_core::tasks`.
-
-### Customization
-
-- [ ] Expand the configuration system with additional TUI customization,
-      including ASCII icons, font-related terminal options, highlights and
-      other visual properties.
-
-      All supported options should remain configurable without modifying
-      the source code and, where appropriate, should be exposed through
-      the Settings window.
-
-### Roadmap / Product Direction
-
-- [ ] Add a dedicated section to the README describing future features
-      and the long-term purpose of TMR.
-
-      This section should distinguish implemented functionality, planned
-      functionality and experimental ideas, keeping the project's scope
-      clear as it grows.
-
-## Development
-
-```sh
-cargo build --workspace       # build everything
-cargo test --workspace        # run all unit tests
-cargo clippy --workspace --all-targets
-cargo fmt --all
-```
-
-If you're an AI agent (or onboarding one) working on this repo, see
-[`.llm/`](.llm/) — task-oriented docs on driving the TUI, the config/theme
-schema, the crate architecture and data flow, how to extend it (widgets,
-addons, formats), and known-limitation troubleshooting, written to be
-read on demand rather than all at once.
-
-## Tests
-
-Unit tests live next to the code they cover (`#[cfg(test)]` modules), no
-TUI initialization required — the engine, parser and rendering-to-lines
-logic are all plain functions/structs testable in isolation:
-
-- `tmr-core`: filesystem ops (create/save/delete/rename, size guard,
-  workspace containment), config loading (missing/partial/invalid file)
-  and settings persistence (`persist_settings`'s format-preserving
-  partial-file writes), theme resolution, keymap parsing/overrides,
-  search, the `App` engine's command dispatch (open/save/toggle-task/
-  create/delete + addon/widget event fan-out).
-- `tmr-markdown`: the Markdown parser (headings, lists, nested task lists,
-  code blocks, blockquotes, tables, links, images, thematic breaks) and
-  checkbox toggling (index-based, nested lists, no-trailing-newline files).
-- `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
-  Shift-selection extend/normalize/delete, select-all, cursor-row seeking,
-  selected-text extraction), color parsing, Markdown-AST-to-terminal-lines
-  rendering (task index tracking, image fallback, gutter width, the
-  selection-highlight span-splitting logic, and the horizontal-scroll
-  character-trimming logic), `UiState`'s horizontal-scroll clamping, the
-  OSC 52 clipboard module's base64 encoder (RFC 4648 test vectors), and
-  the `h` popup's query-filtering logic.
-
-Run everything with `cargo test --workspace`.
+- [Features](docs/features.md) — what tmr can do
+- [Keybindings](docs/keybindings.md) — the default keymap
+- [Configuration](docs/configuration.md) — `config.toml`, themes
+- [Architecture](docs/architecture.md) — crates, data flow, widgets/addons
+- [Roadmap / known limitations](docs/roadmap.md)
+- [TODO](docs/todo.md) — tracked task list
+- [Development](docs/development.md) — setup scripts, dev commands, tests
+- [CHANGELOG](CHANGELOG.md)
 
 ## License
 
