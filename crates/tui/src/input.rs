@@ -107,6 +107,11 @@ pub fn handle_key(
                 if let Some(editor) = ui.editor.as_mut() {
                     editor.select_all();
                 }
+            } else if action == Some("copy") {
+                copy_selection(ui);
+            } else if action == Some("cut") {
+                cut_selection(ui);
+                refresh_rendered(ui, app, palette, image_cap, width);
             } else {
                 handle_editor_key(ui, key, tab_width);
                 refresh_rendered(ui, app, palette, image_cap, width);
@@ -322,6 +327,40 @@ fn save_current(ui: &mut UiState, app: &mut App) {
             ui.set_status("Saved", StatusLevel::Success);
         }
         Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
+    }
+}
+
+/// Copies the current selection (if any) to the system clipboard via OSC
+/// 52 — see `crate::clipboard::set_clipboard`. A no-op, silent, if there's
+/// no selection; a write failure surfaces as a status-bar error.
+fn copy_selection(ui: &mut UiState) {
+    let Some(text) = ui.editor.as_ref().and_then(|e| e.selected_text()) else {
+        return;
+    };
+    match crate::clipboard::set_clipboard(&text) {
+        Ok(()) => ui.set_status("Copied selection", StatusLevel::Success),
+        Err(e) => ui.set_status(format!("Copy failed: {e}"), StatusLevel::Error),
+    }
+}
+
+/// Like `copy_selection`, but also removes the selection from the buffer
+/// — and only if the clipboard write actually succeeded, so a failed Cut
+/// never silently destroys text the user couldn't retrieve.
+fn cut_selection(ui: &mut UiState) {
+    let Some(text) = ui.editor.as_ref().and_then(|e| e.selected_text()) else {
+        return;
+    };
+    match crate::clipboard::set_clipboard(&text) {
+        Ok(()) => {
+            if let Some(editor) = ui.editor.as_mut() {
+                editor.delete_selection();
+            }
+            ui.set_status("Cut selection", StatusLevel::Success);
+        }
+        Err(e) => ui.set_status(
+            format!("Cut failed (nothing removed): {e}"),
+            StatusLevel::Error,
+        ),
     }
 }
 

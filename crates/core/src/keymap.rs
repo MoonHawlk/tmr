@@ -27,6 +27,8 @@ const DEFAULTS: &[(&str, &str)] = &[
     ("help", "h"),
     ("settings", "s"),
     ("select_all", "ctrl+a"),
+    ("copy", "ctrl+c"),
+    ("cut", "ctrl+x"),
 ];
 
 /// Action name -> key-spec string, as configured by the user (or defaults).

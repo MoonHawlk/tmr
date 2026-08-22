@@ -45,7 +45,11 @@ tmr ~/notes
   keys to select a range, the same way a shell prompt or a plain-text CLI
   editor does. `Backspace`/`Delete` removes the selection; typing a
   character replaces it. Selected text is visually reverse-highlighted.
-  `ctrl+a` selects the entire document the same way.
+  `ctrl+a` selects the entire document the same way. `ctrl+c`/`ctrl+x`
+  copy/cut the current selection to the system clipboard via an OSC 52
+  terminal escape sequence — no native clipboard dependency, and it works
+  over SSH/tmux, where a native clipboard API has no path back to the
+  desktop.
 - Line numbers in the Document pane's gutter (both the normal rendered
   view and the raw Edit-mode view).
 - A searchable command-reference popup (`h`), with `up`/`down` to move the
@@ -126,6 +130,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+r`    | Reload the current directory listing                |
 | `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
 | `ctrl+a`    | Edit mode only: select the entire document              |
+| `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
 | `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `q`         | Quit                                                 |
@@ -281,9 +286,10 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Shift+navigation text selection in Edit mode (select, then
       Backspace/Delete/type to remove or replace it)
 - [x] Select-all (`Ctrl+A`)
-- [ ] Copy/cut the current selection to the system clipboard (selection
-      exists now, but there's no clipboard integration yet — `Ctrl+C`/
-      `Ctrl+X` are unbound)
+- [x] Copy/cut the current selection to the system clipboard (`ctrl+c`/
+      `ctrl+x` in Edit mode, via an OSC 52 terminal escape sequence — no
+      new dependency, and it works over SSH/tmux where a native clipboard
+      API has no path back to the desktop)
 - [ ] Double-click/word-level selection
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
@@ -326,11 +332,12 @@ logic are all plain functions/structs testable in isolation:
   code blocks, blockquotes, tables, links, images, thematic breaks) and
   checkbox toggling (index-based, nested lists, no-trailing-newline files).
 - `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
-  Shift-selection extend/normalize/delete, select-all, cursor-row seeking),
-  color parsing, Markdown-AST-to-terminal-lines rendering (task index
-  tracking, image fallback, gutter width, the selection-highlight
-  span-splitting logic, and the horizontal-scroll character-trimming
-  logic), `UiState`'s horizontal-scroll clamping, and the `h` popup's
-  query-filtering logic.
+  Shift-selection extend/normalize/delete, select-all, cursor-row seeking,
+  selected-text extraction), color parsing, Markdown-AST-to-terminal-lines
+  rendering (task index tracking, image fallback, gutter width, the
+  selection-highlight span-splitting logic, and the horizontal-scroll
+  character-trimming logic), `UiState`'s horizontal-scroll clamping, the
+  OSC 52 clipboard module's base64 encoder (RFC 4648 test vectors), and
+  the `h` popup's query-filtering logic.
 
 Run everything with `cargo test --workspace`.

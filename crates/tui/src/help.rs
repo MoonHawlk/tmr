@@ -27,6 +27,8 @@ const ENTRIES: &[(&str, &str)] = &[
     ("save", "Save the document (Edit mode)"),
     ("cancel", "Leave Edit mode / cancel a dialog"),
     ("select_all", "Select the entire document (Edit mode)"),
+    ("copy", "Copy the current selection (Edit mode)"),
+    ("cut", "Cut the current selection (Edit mode)"),
     ("search", "Search filenames or in-document text"),
     ("new_file", "Create a new file"),
     ("rename", "Rename the selected file"),

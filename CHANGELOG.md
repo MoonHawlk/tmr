@@ -9,6 +9,16 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Copy/cut the current Edit-mode selection to the system clipboard —
+  `ctrl+c`/`ctrl+x` (new default bindings, `crates/core/src/keymap.rs`).
+  Implemented via an OSC 52 terminal escape sequence rather than a native
+  clipboard crate: no new dependency (just a small hand-rolled base64
+  encoder), and it works over SSH/tmux, where a native clipboard API has
+  no path back to the user's desktop. Cut only removes the selection once
+  the clipboard write actually succeeds, so a failure never silently
+  destroys text the user couldn't retrieve. See
+  `crates/tui/src/clipboard.rs` and `Editor::selected_text`
+  (`crates/tui/src/editor.rs`).
 - The Settings window's theme and line-indicator choices are now
   persisted to `config.toml` as you change them (`[theme] name` and a new
   `[ui] line_indicator` key), instead of resetting to whatever was

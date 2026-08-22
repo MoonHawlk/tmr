@@ -87,6 +87,32 @@ impl Editor {
         self.selection_range().is_some()
     }
 
+    /// The currently selected text, if any — joined with `\n` for a
+    /// multi-line selection. Used for Copy/Cut; doesn't touch the buffer
+    /// or the selection itself (see `delete_selection` for that).
+    pub fn selected_text(&self) -> Option<String> {
+        let (start, end) = self.selection_range()?;
+        let (start_row, start_col) = start;
+        let (end_row, end_col) = end;
+        if start_row == end_row {
+            let line = &self.lines[start_row];
+            let from = char_to_byte(line, start_col);
+            let to = char_to_byte(line, end_col);
+            return Some(line[from..to].to_string());
+        }
+        let mut out = String::new();
+        let first = &self.lines[start_row];
+        out.push_str(&first[char_to_byte(first, start_col)..]);
+        for line in &self.lines[start_row + 1..end_row] {
+            out.push('\n');
+            out.push_str(line);
+        }
+        out.push('\n');
+        let last = &self.lines[end_row];
+        out.push_str(&last[..char_to_byte(last, end_col)]);
+        Some(out)
+    }
+
     /// Starts a selection at the current cursor position if one isn't
     /// already in progress — called on the *first* Shift+navigation key, so
     /// later ones in the same drag just move the cursor and extend it.
@@ -427,5 +453,34 @@ mod tests {
         let mut ed = Editor::new("abc\ndef", 4);
         ed.set_cursor_row(50);
         assert_eq!(ed.cursor(), (1, 0));
+    }
+
+    #[test]
+    fn selected_text_returns_none_without_a_selection() {
+        let ed = Editor::new("hello", 4);
+        assert_eq!(ed.selected_text(), None);
+    }
+
+    #[test]
+    fn selected_text_on_a_single_line() {
+        let mut ed = Editor::new("hello world", 4);
+        ed.start_or_keep_selection();
+        for _ in 0..5 {
+            ed.move_right();
+        }
+        assert_eq!(ed.selected_text().as_deref(), Some("hello"));
+        // Read-only: the buffer and selection are both untouched.
+        assert_eq!(ed.to_content(), "hello world");
+        assert!(ed.has_selection());
+    }
+
+    #[test]
+    fn selected_text_spans_multiple_lines() {
+        let mut ed = Editor::new("abc\ndef\nghi", 4);
+        ed.start_or_keep_selection();
+        ed.move_down();
+        ed.move_down();
+        ed.move_right();
+        assert_eq!(ed.selected_text().as_deref(), Some("abc\ndef\ng"));
     }
 }

@@ -1,3 +1,4 @@
+pub mod clipboard;
 pub mod editor;
 pub mod help;
 pub mod image_backend;
