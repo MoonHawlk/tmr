@@ -1,4 +1,5 @@
 pub mod editor;
+pub mod help;
 pub mod image_backend;
 pub mod input;
 pub mod keymap;

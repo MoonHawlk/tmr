@@ -24,6 +24,7 @@ const DEFAULTS: &[(&str, &str)] = &[
     ("nav_enter", "right"),
     ("nav_back", "left"),
     ("focus_files", "tab"),
+    ("help", "h"),
 ];
 
 /// Action name -> key-spec string, as configured by the user (or defaults).

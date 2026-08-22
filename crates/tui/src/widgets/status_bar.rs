@@ -45,12 +45,27 @@ pub fn draw(
         Mode::Edit => {
             let name = doc_name.unwrap_or("untitled");
             let mark = if dirty { "*" } else { "" };
+            let position = ui
+                .editor
+                .as_ref()
+                .map(|e| {
+                    let (row, col) = e.cursor();
+                    format!("Ln {}, Col {}  ", row + 1, col + 1)
+                })
+                .unwrap_or_default();
             Line::from(vec![
                 Span::styled("EDIT ", Style::default().fg(palette.accent)),
                 Span::raw(format!("{name}{mark}  ")),
+                Span::styled(position, Style::default().fg(palette.accent)),
                 Span::styled("ctrl+s save · esc back", Style::default().fg(palette.muted)),
             ])
         }
+        Mode::Help { query } => Line::from(vec![
+            Span::styled("HELP ", Style::default().fg(palette.accent)),
+            Span::raw(format!("search: {query}")),
+            Span::styled("_  ", Style::default().fg(palette.muted)),
+            Span::styled("esc close", Style::default().fg(palette.muted)),
+        ]),
         Mode::Normal => {
             if let Some((msg, level)) = &ui.status {
                 let color = match level {
@@ -66,7 +81,7 @@ pub fn draw(
                 Line::from(vec![
                     Span::raw(format!("{name}{mark}  ")),
                     Span::styled(
-                        "tab focus · enter open/edit · space toggle · / search · ctrl+n new · d delete · q quit",
+                        "tab focus · enter open/edit · space toggle · / search · ctrl+n new · d delete · h help · q quit",
                         Style::default().fg(palette.muted),
                     ),
                 ])

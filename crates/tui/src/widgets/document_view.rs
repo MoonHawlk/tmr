@@ -11,6 +11,9 @@ use crate::markdown_view::RenderedLine;
 use crate::state::Focus;
 use crate::theme::Palette;
 
+/// Draws the Document pane and returns its interior rect (inside the
+/// border), so callers can compute where within it to place the real
+/// terminal cursor (see `ui.rs::draw`, Edit-mode cursor placement).
 #[allow(clippy::too_many_arguments)]
 pub fn draw(
     frame: &mut Frame,
@@ -22,7 +25,7 @@ pub fn draw(
     palette: &Palette,
     border: BorderStyle,
     empty_hint: Option<&str>,
-) {
+) -> Rect {
     let is_focused = focus == Focus::Document;
     let block = styled_block("DOCUMENT", border, palette, is_focused);
     let inner = block.inner(area);
@@ -32,7 +35,7 @@ pub fn draw(
         if let Some(hint) = empty_hint {
             frame.render_widget(Paragraph::new(hint), inner);
         }
-        return;
+        return inner;
     }
 
     let height = inner.height as usize;
@@ -59,4 +62,5 @@ pub fn draw(
         .collect();
 
     frame.render_widget(Paragraph::new(lines), inner);
+    inner
 }

@@ -32,6 +32,10 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
 - **Prompt** — typing a new filename or a rename target.
 - **Confirm** — a yes/no gate before a destructive action (currently only
   delete).
+- **Help** — a visual-only, filterable command-reference popup, entered
+  with `h` when no document is open (Edit mode intercepts `h` as a
+  literal character, so this never fires mid-edit). Typing filters the
+  list; `Esc` closes it; nothing in this mode dispatches a `Command`.
 
 In **Search**/**Prompt** modes, every typed character is appended to the
 buffer (not looked up in the keymap) — so typing `q` while naming a new
@@ -57,6 +61,7 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `d` | `delete` | Files only, non-directories: ask for confirmation, then delete |
 | `Ctrl+R` | `reload` | Re-list the current directory from disk |
 | `y` | `confirm` | Confirms a pending delete (Confirm mode only) |
+| `h` | `help` | Opens the command-reference popup — only fires when no document is open |
 | `q` | `quit` | Exit tmr |
 
 ## Step-by-step workflows
@@ -71,11 +76,20 @@ file immediately — there is no separate "save" step for checkbox toggles.
 
 **Edit and save**: Document focused, `Enter` to start editing (note: the
 editor cursor starts at the top of the file, not at the line you were
-viewing — see `troubleshooting.md`). Type normally; arrow keys, `Home`/
-`End`, `Backspace`/`Delete`, `Tab` (inserts `tab_width` spaces) all work.
-`Ctrl+S` saves and returns to Normal mode; `Esc` returns to Normal mode
-without saving (the buffer is *not* discarded — pressing `Enter` again
-resumes editing with your unsaved changes still there).
+viewing — see `troubleshooting.md`). While editing, the pane switches to
+raw source text (not the Obsidian-style rendering) and a real terminal
+cursor tracks your position, with `Ln X, Col Y` shown in the status bar
+— see `crates/tui/src/input.rs::refresh_rendered` and
+`crates/tui/src/ui.rs::draw`'s Edit-mode cursor placement. Type normally;
+arrow keys, `Home`/`End`, `Backspace`/`Delete`, `Tab` (inserts
+`tab_width` spaces) all work. `Ctrl+S` saves and returns to Normal mode;
+`Esc` returns to Normal mode without saving (the buffer is *not*
+discarded — pressing `Enter` again resumes editing with your unsaved
+changes still there). Either way, the pane switches back to the
+Obsidian-style rendering.
+
+**Look up a command**: any pane, no document open, `h` → type to filter
+→ `Esc` to close. Read-only; it doesn't run anything.
 
 **Create a note**: any pane, `Ctrl+N` → type a filename (e.g.
 `idea.md`) → `Enter`. Created empty in the *current* directory (the one

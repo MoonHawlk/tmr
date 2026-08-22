@@ -37,23 +37,37 @@ pub fn refresh_rendered(
         .as_ref()
         .map(|e| e.to_content())
         .unwrap_or_else(|| doc.content.clone());
-    // The Obsidian-style rich rendering (hidden syntax markers, per-element
-    // styling, checkbox glyphs, ...) is Markdown-specific — every other
-    // format is shown as plain, unparsed text.
-    ui.rendered = match doc.format {
-        DocumentFormat::Markdown => {
-            let base_dir = doc
-                .path
-                .parent()
-                .unwrap_or(app.workspace().root())
-                .to_path_buf();
-            let blocks = tmr_markdown::parse(&content);
-            markdown_view::render(&blocks, palette, image_cap, &base_dir, width)
-        }
-        DocumentFormat::PlainText | DocumentFormat::Unknown => {
-            markdown_view::render_plain_text(&content, palette)
+    // While actively editing, show the raw source one-line-per-line instead
+    // of the Obsidian-style rendering: that keeps rendered line indices in
+    // exact lockstep with `Editor`'s row indices (Markdown block rendering
+    // doesn't preserve a 1:1 source-line mapping — see markdown_view's
+    // module doc), which is what lets the terminal cursor and the
+    // highlighted line track the *actual* typing position rather than
+    // wherever the cursor happened to be when Edit mode was entered.
+    let editing = matches!(ui.mode, Mode::Edit);
+    ui.rendered = if editing {
+        markdown_view::render_plain_text(&content, palette)
+    } else {
+        match doc.format {
+            DocumentFormat::Markdown => {
+                let base_dir = doc
+                    .path
+                    .parent()
+                    .unwrap_or(app.workspace().root())
+                    .to_path_buf();
+                let blocks = tmr_markdown::parse(&content);
+                markdown_view::render(&blocks, palette, image_cap, &base_dir, width)
+            }
+            DocumentFormat::PlainText | DocumentFormat::Unknown => {
+                markdown_view::render_plain_text(&content, palette)
+            }
         }
     };
+    if editing {
+        if let Some(editor) = &ui.editor {
+            ui.doc_cursor = editor.cursor().0;
+        }
+    }
     ui.doc_cursor = ui.doc_cursor.min(ui.rendered.len().saturating_sub(1));
 }
 
@@ -75,11 +89,16 @@ pub fn handle_key(
         Mode::Confirm { .. } => {
             handle_confirm_key(ui, app, resolved_keymap, key);
         }
+        Mode::Help { .. } => {
+            handle_help_key(ui, key);
+        }
         Mode::Edit => {
             if resolved_keymap.get(&key).map(String::as_str) == Some("save") {
                 save_current(ui, app);
+                refresh_rendered(ui, app, palette, image_cap, width);
             } else if key.code == KeyCode::Esc {
                 ui.mode = Mode::Normal;
+                refresh_rendered(ui, app, palette, image_cap, width);
             } else {
                 handle_editor_key(ui, key, tab_width);
                 refresh_rendered(ui, app, palette, image_cap, width);
@@ -135,6 +154,7 @@ fn handle_action(
         "edit" if ui.focus == Focus::Document => {
             if app.document().is_some() {
                 ui.mode = Mode::Edit;
+                refresh_rendered(ui, app, palette, image_cap, width);
             }
         }
         "nav_back" => {
@@ -159,7 +179,10 @@ fn handle_action(
                 }
             }
         }
-        "save" if ui.focus == Focus::Document => save_current(ui, app),
+        "save" if ui.focus == Focus::Document => {
+            save_current(ui, app);
+            refresh_rendered(ui, app, palette, image_cap, width);
+        }
         "new_file" => {
             ui.mode = Mode::Prompt {
                 kind: PromptKind::NewFile,
@@ -202,6 +225,11 @@ fn handle_action(
             Ok(_) => ui.set_status("Reloaded", StatusLevel::Info),
             Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
         },
+        "help" if app.document().is_none() => {
+            ui.mode = Mode::Help {
+                query: String::new(),
+            };
+        }
         _ => {}
     }
     ControlFlow::Continue
@@ -380,6 +408,20 @@ fn submit_text_entry(
         other => ui.mode = other,
     }
     let _ = (palette, image_cap, width);
+}
+
+fn handle_help_key(ui: &mut UiState, key: Key) {
+    let Mode::Help { query } = &mut ui.mode else {
+        return;
+    };
+    match key.code {
+        KeyCode::Esc => ui.mode = Mode::Normal,
+        KeyCode::Char(c) => query.push(c),
+        KeyCode::Backspace => {
+            query.pop();
+        }
+        _ => {}
+    }
 }
 
 fn handle_confirm_key(

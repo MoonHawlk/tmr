@@ -49,6 +49,13 @@ pub enum Mode {
         message: String,
         action: ConfirmAction,
     },
+    /// A visual-only command reference, opened with `h` (default binding)
+    /// whenever the user isn't actively typing into a document (Edit mode
+    /// intercepts `h` as a literal character instead). `query` filters the
+    /// list as the user types; nothing in this mode dispatches a `Command`.
+    Help {
+        query: String,
+    },
 }
 
 /// All interaction/presentation state that isn't part of the core engine:
@@ -65,7 +72,6 @@ pub struct UiState {
     pub status: Option<(String, StatusLevel)>,
     pub rendered: Vec<RenderedLine>,
     pub search_matches: Vec<usize>,
-    pub show_help: bool,
 }
 
 impl Default for UiState {
@@ -80,7 +86,6 @@ impl Default for UiState {
             status: None,
             rendered: Vec::new(),
             search_matches: Vec::new(),
-            show_help: false,
         }
     }
 }

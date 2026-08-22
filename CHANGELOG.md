@@ -9,6 +9,19 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- A "where am I typing" locator for Edit mode: the document pane now
+  shows the raw source text (instead of the Obsidian-style rendering)
+  while editing, so line numbers match the built-in editor 1:1; the
+  current line auto-scrolls into view, a real terminal cursor blinks at
+  the exact row/column, and the status bar shows `Ln X, Col Y`. Leaving
+  Edit mode (`esc` or `ctrl+s`) switches the pane back to the normal
+  rendered view.
+- A command-reference popup, opened with `h` (new default binding,
+  `crates/core/src/keymap.rs`) whenever no document is open. Shows every
+  action, the key actually bound to it (honors `[keys]` overrides, not
+  just the built-in defaults), and a one-line description, filterable by
+  typing — `esc` closes it. Purely visual; it doesn't dispatch any
+  `Command`. See `crates/tui/src/help.rs`.
 - Obsidian-style Markdown rendering: raw syntax markers (`#`, `**`,
   `` ` ``, `[]()`, `> `) are no longer shown — each element gets its own
   glyph/color/weight. Heading levels 1–6 get decreasing visual

@@ -38,6 +38,10 @@ tmr ~/notes
   extensions) is shown as plain, untouched text — no parsing at all.
 - Interactive task-list checkboxes (`- [ ]` / `- [x]`) — toggle with the
   cursor, persisted straight to the `.md` file.
+- A live cursor locator while editing: raw source view, auto-scroll, a
+  real blinking terminal caret, and a `Ln X, Col Y` status readout, so
+  you always know where a keystroke will land.
+- A searchable command-reference popup (`h`, when no document is open).
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -106,6 +110,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `r`         | Rename selected file                                |
 | `d`         | Delete selected file (asks to confirm with `y`)      |
 | `ctrl+r`    | Reload the current directory listing                |
+| `h`         | Open the command-reference popup (only when no document is open); type to filter, `esc` to close |
 | `q`         | Quit                                                 |
 
 ## Configuration
@@ -224,8 +229,20 @@ as part of any change that adds/fixes user-facing behavior.
       hidden raw syntax, heading hierarchy)
 - [x] Plain-text rendering path for non-Markdown files
 - [x] `[ui] show_hidden` config option actually wired to the file listing
+- [x] Edit-mode cursor locator: raw source view, auto-scroll, a real
+      terminal caret, and a `Ln X, Col Y` status readout
+- [x] `h` command-reference popup (searchable, only when no document is
+      open)
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Sync the editor's opening cursor position to the line you were viewing
+- [ ] Horizontal scroll for the Edit-mode cursor locator: a column past
+      the pane's right edge is currently clamped to the last visible
+      column rather than scrolling the view (same root cause as the
+      no-word-wrap limitation above)
+- [ ] Scrolling/keyboard navigation inside the `h` command-reference
+      popup for terminals too short to fit every entry at once (it
+      currently just clips silently, relying on the search filter to
+      narrow the list instead)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
 - [ ] Recursive/global search across the workspace
 - [ ] Config/theme hot-reload without restarting tmr
