@@ -33,9 +33,11 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
 - **Confirm** — a yes/no gate before a destructive action (currently only
   delete).
 - **Help** — a visual-only, filterable command-reference popup, entered
-  with `h` when no document is open (Edit mode intercepts `h` as a
-  literal character, so this never fires mid-edit). Typing filters the
-  list; `Esc` closes it; nothing in this mode dispatches a `Command`.
+  with `h` any time in Normal mode (Edit mode intercepts `h` as a literal
+  character, so this never fires mid-edit — that's the *only* gate; it
+  used to also require no document be open, which was a bug, see
+  `CHANGELOG.md`). Typing filters the list; `Esc` closes it; nothing in
+  this mode dispatches a `Command`.
 - **Settings** — the interface-customization window, entered with `s`
   (available regardless of focus or whether a document is open — Edit
   mode intercepts `s` as a literal character the same way it does `h`).
@@ -68,7 +70,8 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `d` | `delete` | Files only, non-directories: ask for confirmation, then delete |
 | `Ctrl+R` | `reload` | Re-list the current directory from disk |
 | `y` | `confirm` | Confirms a pending delete (Confirm mode only) |
-| `h` | `help` | Opens the command-reference popup — only fires when no document is open |
+| `Shift+↑↓←→`/`Shift+Home`/`Shift+End` | *(none — handled inside Edit mode, not the action keymap)* | Edit mode only: extend a text selection from the cursor |
+| `h` | `help` | Opens the command-reference popup |
 | `s` | `settings` | Opens the Settings window (theme, line indicator) |
 | `q` | `quit` | Exit tmr |
 
@@ -96,8 +99,20 @@ discarded — pressing `Enter` again resumes editing with your unsaved
 changes still there). Either way, the pane switches back to the
 Obsidian-style rendering.
 
-**Look up a command**: any pane, no document open, `h` → type to filter
-→ `Esc` to close. Read-only; it doesn't run anything.
+**Select text while editing**: hold `Shift` with `←`/`→`/`↑`/`↓`/`Home`/
+`End` — the first Shift+move records an anchor at the pre-move cursor
+position (`Editor::start_or_keep_selection`), later ones just move the
+cursor and extend the highlighted range. `Backspace`/`Delete` deletes the
+selection (`Editor::delete_selection`) instead of one character; typing
+a character replaces it. Any key that isn't Shift+navigation collapses
+the selection first. See `crates/tui/src/input.rs::handle_editor_key`
+for the exact precedence, and
+`crates/tui/src/widgets/document_view.rs::overlay_style` for how it's
+rendered (splices the highlight into whatever spans are already there,
+so it composes with the current-line indicator instead of fighting it).
+
+**Look up a command**: any pane, `h` → type to filter → `Esc` to close.
+Read-only; it doesn't run anything.
 
 **Change the theme or current-line indicator**: any pane, any time,
 `s` → `Up`/`Down` to the row you want → `Left`/`Right`/`Enter` to cycle

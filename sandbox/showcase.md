@@ -19,10 +19,10 @@ plus a [link](https://example.com).
 
 ## Task list
 
-- [ ] an open task — put the cursor here and press `Space`
-- [x] a completed task
+- [x] an open task — put the cursor here and press `Space`
+- [ ] a completed task
 - [ ] a task with a nested sub-task
-  - [ ] nested sub-task
+    - [ ] nested sub-task
 
 ## Code
 

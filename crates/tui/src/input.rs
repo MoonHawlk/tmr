@@ -228,7 +228,7 @@ fn handle_action(
             Ok(_) => ui.set_status("Reloaded", StatusLevel::Info),
             Err(e) => ui.set_status(e.to_string(), StatusLevel::Error),
         },
-        "help" if app.document().is_none() => {
+        "help" => {
             ui.mode = Mode::Help {
                 query: String::new(),
             };
@@ -304,6 +304,31 @@ fn handle_editor_key(ui: &mut UiState, key: Key, tab_width: usize) {
     let Some(editor) = ui.editor.as_mut() else {
         return;
     };
+    // Shift+navigation selects text, the same way a terminal readline
+    // prompt or a plain-text CLI editor does: the first Shift+move sets an
+    // anchor at the pre-move cursor position, further Shift+moves just
+    // extend it. Anything else collapses the selection — except typing a
+    // character or Backspace/Delete while one is active, which (also
+    // matching normal editor behavior) replaces/removes the selected text
+    // instead of acting on a single character.
+    let is_nav = matches!(
+        key.code,
+        KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down | KeyCode::Home | KeyCode::End
+    );
+    if key.shift && is_nav {
+        editor.start_or_keep_selection();
+    } else {
+        match key.code {
+            KeyCode::Backspace | KeyCode::Delete if editor.has_selection() => {
+                editor.delete_selection();
+                return;
+            }
+            KeyCode::Char(_) | KeyCode::Enter | KeyCode::Tab if editor.has_selection() => {
+                editor.delete_selection();
+            }
+            _ => editor.clear_selection(),
+        }
+    }
     match key.code {
         KeyCode::Char(c) => editor.insert_char(c),
         KeyCode::Enter => editor.insert_newline(),

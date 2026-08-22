@@ -41,9 +41,13 @@ tmr ~/notes
 - A live cursor locator while editing: raw source view, auto-scroll, a
   real blinking terminal caret, and a `Ln X, Col Y` status readout, so
   you always know where a keystroke will land.
+- Text selection in Edit mode: hold `shift` with the arrow/`home`/`end`
+  keys to select a range, the same way a shell prompt or a plain-text CLI
+  editor does. `Backspace`/`Delete` removes the selection; typing a
+  character replaces it. Selected text is visually reverse-highlighted.
 - Line numbers in the Document pane's gutter (both the normal rendered
   view and the raw Edit-mode view).
-- A searchable command-reference popup (`h`, when no document is open).
+- A searchable command-reference popup (`h`).
 - A Settings window (`s`) for live interface customization: pick a color
   theme (`Default` / `Dark` / `Light (grey)`) and how the current line is
   marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
@@ -116,7 +120,8 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `r`         | Rename selected file                                |
 | `d`         | Delete selected file (asks to confirm with `y`)      |
 | `ctrl+r`    | Reload the current directory listing                |
-| `h`         | Open the command-reference popup (only when no document is open); type to filter, `esc` to close |
+| `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
+| `h`         | Open the command-reference popup; type to filter, `esc` to close |
 | `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `q`         | Quit                                                 |
 
@@ -243,11 +248,16 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] `[ui] show_hidden` config option actually wired to the file listing
 - [x] Edit-mode cursor locator: raw source view, auto-scroll, a real
       terminal caret, and a `Ln X, Col Y` status readout
-- [x] `h` command-reference popup (searchable, only when no document is
-      open)
+- [x] `h` command-reference popup (searchable)
 - [x] Line numbers in the Document pane's gutter
 - [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
       and a Highlight-vs-Bar current-line indicator
+- [x] Shift+navigation text selection in Edit mode (select, then
+      Backspace/Delete/type to remove or replace it)
+- [ ] Copy/cut the current selection to the system clipboard (selection
+      exists now, but there's no clipboard integration yet — `Ctrl+C`/
+      `Ctrl+X` are unbound)
+- [ ] Select-all (`Ctrl+A`) and double-click/word-level selection
 - [ ] Persist Settings-window choices (theme, line indicator) to
       `config.toml` — they currently apply live but are session-only,
       reset to `[theme] name`'s configured value and `Highlight` on
@@ -257,7 +267,8 @@ as part of any change that adds/fixes user-facing behavior.
 - [ ] Horizontal scroll for the Edit-mode cursor locator: a column past
       the pane's right edge is currently clamped to the last visible
       column rather than scrolling the view (same root cause as the
-      no-word-wrap limitation above)
+      no-word-wrap limitation above) — also affects how far a selection
+      can be seen once it runs past the right edge
 - [ ] Scrolling/keyboard navigation inside the `h` command-reference
       popup for terminals too short to fit every entry at once (it
       currently just clips silently, relying on the search filter to
@@ -266,7 +277,7 @@ as part of any change that adds/fixes user-facing behavior.
 - [ ] Recursive/global search across the workspace
 - [ ] Config/theme hot-reload without restarting tmr
 - [ ] Syntax highlighting inside fenced code blocks
-- [ ] Mouse support (click to select/open, scroll)
+- [ ] Mouse support (click to select/open, scroll, drag-to-select text)
 - [ ] Undo/redo in the built-in editor
 - [ ] Rendering support for a second document format (TXT/JSON/YAML), to
       exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
@@ -300,8 +311,9 @@ logic are all plain functions/structs testable in isolation:
 - `tmr-markdown`: the Markdown parser (headings, lists, nested task lists,
   code blocks, blockquotes, tables, links, images, thematic breaks) and
   checkbox toggling (index-based, nested lists, no-trailing-newline files).
-- `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling),
-  color parsing, and Markdown-AST-to-terminal-lines rendering (task index
-  tracking, image fallback).
+- `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
+  Shift-selection extend/normalize/delete), color parsing, and Markdown-
+  AST-to-terminal-lines rendering (task index tracking, image fallback,
+  gutter width, and the selection-highlight span-splitting logic).
 
 Run everything with `cargo test --workspace`.

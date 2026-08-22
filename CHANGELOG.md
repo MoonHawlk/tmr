@@ -9,6 +9,17 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Text selection in Edit mode: holding `shift` with an arrow key, `home`,
+  or `end` selects a range from the cursor, the way a shell prompt or a
+  plain-text CLI editor does — the first Shift+move sets an anchor,
+  further Shift+moves extend it, and the selected text is reverse-
+  highlighted. `Backspace`/`Delete` removes the selection instead of one
+  character; typing a character replaces it. Any non-Shift key collapses
+  the selection. See `Editor::selection_range`/`start_or_keep_selection`/
+  `delete_selection` (`crates/tui/src/editor.rs`) and
+  `crates/tui/src/widgets/document_view.rs::overlay_style` for the
+  rendering side (splices the highlight into the existing per-line
+  spans, so it composes correctly with the current-line indicator).
 - Line numbers: the Document pane now shows a numbered gutter for every
   line, in both the normal (Obsidian-style) view and the raw-source Edit
   view. Gutter width grows with the document's line count.
@@ -32,11 +43,11 @@ the README's [TODO section](README.md#todo) for what's still open.
   Edit mode (`esc` or `ctrl+s`) switches the pane back to the normal
   rendered view.
 - A command-reference popup, opened with `h` (new default binding,
-  `crates/core/src/keymap.rs`) whenever no document is open. Shows every
-  action, the key actually bound to it (honors `[keys]` overrides, not
-  just the built-in defaults), and a one-line description, filterable by
-  typing — `esc` closes it. Purely visual; it doesn't dispatch any
-  `Command`. See `crates/tui/src/help.rs`.
+  `crates/core/src/keymap.rs`). Shows every action, the key actually
+  bound to it (honors `[keys]` overrides, not just the built-in
+  defaults), and a one-line description, filterable by typing — `esc`
+  closes it. Purely visual; it doesn't dispatch any `Command`. See
+  `crates/tui/src/help.rs`.
 - Obsidian-style Markdown rendering: raw syntax markers (`#`, `**`,
   `` ` ``, `[]()`, `> `) are no longer shown — each element gets its own
   glyph/color/weight. Heading levels 1–6 get decreasing visual
@@ -62,6 +73,11 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Fixed
 
+- The `h` command-reference popup stopped opening for the rest of the
+  session as soon as any file was opened once — it was gated to only
+  fire when `app.document().is_none()`, and there's no "close document"
+  action, so the gate could never turn back off. `h` now always works in
+  Normal mode, matching the ungated `s` Settings binding.
 - `[ui] show_hidden` was defined in `config.toml`'s schema but had no
   effect — `Workspace::list_dir` now takes and honors it.
 

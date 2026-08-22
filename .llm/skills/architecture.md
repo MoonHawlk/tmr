@@ -99,6 +99,10 @@ you're adding a new user-facing operation, add a `Command` variant and an
 - `input.rs` — the mode-aware key handler described above.
 - `editor.rs` — `Editor`, a minimal hand-rolled multi-line text buffer
   (no external editor-widget dependency) used only while in Edit mode.
+  Also owns Shift+navigation text selection (an `Option<(row, col)>`
+  anchor plus the live cursor; `selection_range` normalizes the two into
+  `(start, end)`) — selection/deletion logic lives here, the highlight
+  rendering lives in `widgets/document_view.rs::overlay_style`.
 - `markdown_view.rs` — `Block` tree -> `Vec<RenderedLine>` (one entry per
   displayed line, each optionally tagged with a `task_index`), styled
   "Obsidian-style": raw syntax markers are never printed, each construct

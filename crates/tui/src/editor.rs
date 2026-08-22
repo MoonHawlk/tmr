@@ -11,6 +11,10 @@ pub struct Editor {
     scroll: usize,
     tab_width: usize,
     dirty: bool,
+    /// Where a Shift+navigation selection started (row, col), if one is in
+    /// progress — the other end is always the live cursor position. `None`
+    /// means no selection.
+    selection_anchor: Option<(usize, usize)>,
 }
 
 fn char_to_byte(line: &str, char_idx: usize) -> usize {
@@ -34,6 +38,7 @@ impl Editor {
             scroll: 0,
             tab_width: tab_width.max(1),
             dirty: false,
+            selection_anchor: None,
         }
     }
 
@@ -59,6 +64,71 @@ impl Editor {
 
     pub fn mark_saved(&mut self) {
         self.dirty = false;
+    }
+
+    /// The selected range as `(start, end)` (row, col) pairs, normalized so
+    /// `start <= end` regardless of which direction the selection was
+    /// extended in. `None` if there's no anchor, or the anchor and cursor
+    /// coincide (Shift was pressed but the cursor hasn't actually moved).
+    pub fn selection_range(&self) -> Option<((usize, usize), (usize, usize))> {
+        let anchor = self.selection_anchor?;
+        let cursor = (self.cursor_row, self.cursor_col);
+        if anchor == cursor {
+            return None;
+        }
+        Some(if anchor <= cursor {
+            (anchor, cursor)
+        } else {
+            (cursor, anchor)
+        })
+    }
+
+    pub fn has_selection(&self) -> bool {
+        self.selection_range().is_some()
+    }
+
+    /// Starts a selection at the current cursor position if one isn't
+    /// already in progress — called on the *first* Shift+navigation key, so
+    /// later ones in the same drag just move the cursor and extend it.
+    pub fn start_or_keep_selection(&mut self) {
+        if self.selection_anchor.is_none() {
+            self.selection_anchor = Some((self.cursor_row, self.cursor_col));
+        }
+    }
+
+    pub fn clear_selection(&mut self) {
+        self.selection_anchor = None;
+    }
+
+    /// Deletes the selected text (if any), moving the cursor to where the
+    /// selection started. Returns whether anything was deleted, so callers
+    /// (e.g. "typing replaces the selection") know whether to skip their
+    /// own default handling of the key that triggered this.
+    pub fn delete_selection(&mut self) -> bool {
+        let Some((start, end)) = self.selection_range() else {
+            return false;
+        };
+        self.selection_anchor = None;
+        let (start_row, start_col) = start;
+        let (end_row, end_col) = end;
+        if start_row == end_row {
+            let line = &mut self.lines[start_row];
+            let from = char_to_byte(line, start_col);
+            let to = char_to_byte(line, end_col);
+            line.replace_range(from..to, "");
+        } else {
+            let end_line = self.lines[end_row].clone();
+            let end_byte = char_to_byte(&end_line, end_col);
+            let tail = end_line[end_byte..].to_string();
+            let start_byte = char_to_byte(&self.lines[start_row], start_col);
+            self.lines[start_row].truncate(start_byte);
+            self.lines[start_row].push_str(&tail);
+            self.lines.drain(start_row + 1..=end_row);
+        }
+        self.cursor_row = start_row;
+        self.cursor_col = start_col;
+        self.dirty = true;
+        true
     }
 
     fn current_line_len(&self) -> usize {
@@ -245,5 +315,66 @@ mod tests {
         assert!(ed.scroll() > 0);
         assert!(ed.cursor().0 >= ed.scroll());
         assert!(ed.cursor().0 < ed.scroll() + 10);
+    }
+
+    #[test]
+    fn selection_extends_across_repeated_shift_moves() {
+        let mut ed = Editor::new("hello world", 4);
+        ed.start_or_keep_selection();
+        ed.move_right();
+        ed.move_right();
+        ed.start_or_keep_selection(); // no-op: anchor already set
+        ed.move_right();
+        assert_eq!(ed.selection_range(), Some(((0, 0), (0, 3))));
+    }
+
+    #[test]
+    fn selection_is_none_when_anchor_equals_cursor() {
+        let mut ed = Editor::new("hello", 4);
+        ed.start_or_keep_selection();
+        assert_eq!(ed.selection_range(), None);
+        assert!(!ed.has_selection());
+    }
+
+    #[test]
+    fn selection_normalizes_backward_drag() {
+        let mut ed = Editor::new("hello", 4);
+        ed.move_end();
+        ed.start_or_keep_selection();
+        ed.move_left();
+        ed.move_left();
+        assert_eq!(ed.selection_range(), Some(((0, 3), (0, 5))));
+    }
+
+    #[test]
+    fn delete_selection_removes_text_on_one_line() {
+        let mut ed = Editor::new("hello world", 4);
+        ed.start_or_keep_selection();
+        for _ in 0..5 {
+            ed.move_right();
+        }
+        assert!(ed.delete_selection());
+        assert_eq!(ed.to_content(), " world");
+        assert_eq!(ed.cursor(), (0, 0));
+        assert!(!ed.has_selection());
+    }
+
+    #[test]
+    fn delete_selection_joins_across_lines() {
+        let mut ed = Editor::new("abc\ndef\nghi", 4);
+        ed.start_or_keep_selection();
+        ed.move_down();
+        ed.move_down();
+        ed.move_right();
+        ed.delete_selection();
+        assert_eq!(ed.to_content(), "hi");
+        assert_eq!(ed.cursor(), (0, 0));
+    }
+
+    #[test]
+    fn delete_selection_on_empty_selection_is_noop() {
+        let mut ed = Editor::new("hello", 4);
+        assert!(!ed.delete_selection());
+        assert_eq!(ed.to_content(), "hello");
     }
 }

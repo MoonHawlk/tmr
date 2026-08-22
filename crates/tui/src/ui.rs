@@ -36,6 +36,11 @@ pub fn draw(
     } else {
         None
     };
+    let selection = if let Mode::Edit = ui.mode {
+        ui.editor.as_ref().and_then(|e| e.selection_range())
+    } else {
+        None
+    };
     let doc_inner = document_view::draw(
         frame,
         panes.document,
@@ -47,6 +52,7 @@ pub fn draw(
         border,
         empty_hint,
         ui.line_indicator,
+        selection,
     );
 
     if let Some(side) = panes.side {

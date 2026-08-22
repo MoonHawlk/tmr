@@ -51,10 +51,11 @@ pub enum Mode {
         message: String,
         action: ConfirmAction,
     },
-    /// A visual-only command reference, opened with `h` (default binding)
-    /// whenever the user isn't actively typing into a document (Edit mode
-    /// intercepts `h` as a literal character instead). `query` filters the
-    /// list as the user types; nothing in this mode dispatches a `Command`.
+    /// A visual-only command reference, opened with `h` (default binding),
+    /// available any time in Normal mode regardless of focus or whether a
+    /// document is open (Edit mode intercepts `h` as a literal character
+    /// instead, so it never fires mid-edit). `query` filters the list as
+    /// the user types; nothing in this mode dispatches a `Command`.
     Help {
         query: String,
     },
