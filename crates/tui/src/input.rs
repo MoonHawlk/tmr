@@ -92,6 +92,9 @@ pub fn handle_key(
         Mode::Help { .. } => {
             handle_help_key(ui, key);
         }
+        Mode::Settings { .. } => {
+            handle_settings_key(ui, app, key, image_cap, width);
+        }
         Mode::Edit => {
             if resolved_keymap.get(&key).map(String::as_str) == Some("save") {
                 save_current(ui, app);
@@ -229,6 +232,9 @@ fn handle_action(
             ui.mode = Mode::Help {
                 query: String::new(),
             };
+        }
+        "settings" => {
+            ui.mode = Mode::Settings { row: 0 };
         }
         _ => {}
     }
@@ -421,6 +427,54 @@ fn handle_help_key(ui: &mut UiState, key: Key) {
             query.pop();
         }
         _ => {}
+    }
+}
+
+/// Row 0 is the Theme picker, row 1 the Line-indicator picker. Changing the
+/// theme takes effect immediately: it updates `app.theme` and re-renders
+/// the cached document view (`ui.rendered` bakes in colors at render time,
+/// unlike the borders/status-bar/popups, which read the palette live every
+/// frame — see `lib.rs::run_loop`'s per-iteration `Palette::from_theme`).
+fn handle_settings_key(
+    ui: &mut UiState,
+    app: &mut App,
+    key: Key,
+    image_cap: ImageCapability,
+    width: u16,
+) {
+    let Mode::Settings { row } = std::mem::replace(&mut ui.mode, Mode::Normal) else {
+        return;
+    };
+    match key.code {
+        KeyCode::Esc => {}
+        KeyCode::Up => {
+            ui.mode = Mode::Settings {
+                row: row.saturating_sub(1),
+            };
+        }
+        KeyCode::Down => {
+            ui.mode = Mode::Settings {
+                row: (row + 1).min(1),
+            };
+        }
+        KeyCode::Left | KeyCode::Right | KeyCode::Enter | KeyCode::Char(' ') => {
+            ui.mode = Mode::Settings { row };
+            if row == 0 {
+                ui.theme_choice = if key.code == KeyCode::Left {
+                    ui.theme_choice.prev()
+                } else {
+                    ui.theme_choice.next()
+                };
+                app.theme = ui.theme_choice.resolve(&ui.default_theme);
+                let live_palette = Palette::from_theme(&app.theme);
+                refresh_rendered(ui, app, &live_palette, image_cap, width);
+            } else {
+                ui.line_indicator = ui.line_indicator.toggled();
+            }
+        }
+        _ => {
+            ui.mode = Mode::Settings { row };
+        }
     }
 }
 

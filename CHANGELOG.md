@@ -9,6 +9,21 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- Line numbers: the Document pane now shows a numbered gutter for every
+  line, in both the normal (Obsidian-style) view and the raw-source Edit
+  view. Gutter width grows with the document's line count.
+- A Settings window, opened with `s` (new default binding). Lets you
+  switch the color theme live — `Default` (whatever `config.toml`
+  selected at startup), `Dark`, or `Light (grey)`, a new neutral/
+  monochrome light palette (`Theme::light_grey`, distinct from the
+  existing blue-tinted `light`) — and choose how the Document pane marks
+  its current line: `Highlight` (the original full-line reverse-video) or
+  `Bar`, a single `▏` marker in the gutter next to the line number,
+  closer to a plain terminal cursor. `Up`/`Down` selects a row, `Left`/
+  `Right`/`Enter` cycles its value, `Esc` closes. Both settings apply
+  immediately, no restart — but are session-only for now, not persisted
+  to `config.toml` (see the new `README.md` TODO item). See
+  `crates/tui/src/settings.rs`.
 - A "where am I typing" locator for Edit mode: the document pane now
   shows the raw source text (instead of the Obsidian-style rendering)
   while editing, so line numbers match the built-in editor 1:1; the

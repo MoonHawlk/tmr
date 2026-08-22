@@ -1,0 +1,15 @@
+# tmr theme — grey: a neutral, monochrome light palette (distinct from
+# `light.toml`, which is blue/lavender-tinted). Every chrome color here is a
+# shade of grey; only success/warning/error keep their hue so task/status
+# feedback stays legible. Install at ~/.config/tmr/themes/grey.toml to
+# override, or set `[theme] name = "grey"` in config.toml to select it
+# (it's also built into the binary, so no file is required).
+name = "grey"
+foreground = "#3a3a3a"
+background = "#f4f4f4"
+accent = "#111111"
+border = "#bbbbbb"
+muted = "#8f8f8f"
+success = "#3f7d3f"
+warning = "#a67c00"
+error = "#a83232"

@@ -33,6 +33,10 @@ const ENTRIES: &[(&str, &str)] = &[
     ("confirm", "Confirm a pending delete"),
     ("reload", "Re-list the current directory"),
     ("help", "Show this command reference"),
+    (
+        "settings",
+        "Open the Settings window (theme, line indicator)",
+    ),
     ("quit", "Quit tmr"),
 ];
 

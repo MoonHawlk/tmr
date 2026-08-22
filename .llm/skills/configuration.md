@@ -81,12 +81,25 @@ table on top of `Keymap::default()`, not a full replacement).
 
 ## Themes
 
-`[theme] name = "dark"` (default) or `"light"` select a palette that's
-built into the binary — no file needed
-(`crates/core/src/theme.rs::Theme::dark`/`light`). Any other name is
-looked up at `<config_dir>/themes/<name>.toml`; if that file is missing
-or invalid, tmr falls back to the built-in dark palette and prints a
-warning (`Theme::resolve`).
+`[theme] name = "dark"` (default), `"light"`, or `"grey"` select a
+palette that's built into the binary — no file needed
+(`crates/core/src/theme.rs::Theme::dark`/`light`/`light_grey`). `grey` is
+a neutral, monochrome light palette — distinct from `light`, which is
+blue/lavender-tinted — with only the semantic colors (success/warning/
+error) keeping their hue. Any other name is looked up at
+`<config_dir>/themes/<name>.toml`; if that file is missing or invalid,
+tmr falls back to the built-in dark palette and prints a warning
+(`Theme::resolve`).
+
+Separately, the in-app Settings window (`s`, `crates/tui/src/settings.rs`)
+lets a user switch between `Default` (whatever the above resolved to at
+startup — snapshotted in `UiState::default_theme`), `Dark`, and
+`Light (grey)` live, without touching `config.toml` — see
+`crates/tui/src/input.rs::handle_settings_key`. That switch is
+session-only: it mutates `App::theme` directly (and `lib.rs::run_loop`
+recomputes the `Palette` every frame instead of once, to pick it up), but
+nothing persists it back to disk, so it resets to `config.toml`'s value
+on the next launch.
 
 Theme file schema — flat key/value, all colors as `"#rrggbb"` hex or one
 of a small set of ANSI names (`black red green yellow blue magenta cyan

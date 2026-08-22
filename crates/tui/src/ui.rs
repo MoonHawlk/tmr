@@ -5,6 +5,7 @@ use tmr_core::app::App;
 use crate::help;
 use crate::image_backend::ImageCapability;
 use crate::layout::compute_panes;
+use crate::settings;
 use crate::state::{Mode, UiState};
 use crate::theme::Palette;
 use crate::widgets::{document_view, file_list, side_panel, status_bar};
@@ -45,6 +46,7 @@ pub fn draw(
         palette,
         border,
         empty_hint,
+        ui.line_indicator,
     );
 
     if let Some(side) = panes.side {
@@ -62,10 +64,14 @@ pub fn draw(
     if let Mode::Edit = ui.mode {
         if let Some(editor) = &ui.editor {
             let (row, col) = editor.cursor();
-            if row >= ui.doc_scroll && doc_inner.height > 0 {
+            // Must match `document_view::draw`'s gutter exactly, or the
+            // cursor lands on the wrong column.
+            let gutter = document_view::gutter_cols(ui.rendered.len());
+            if row >= ui.doc_scroll && doc_inner.height > 0 && doc_inner.width > gutter {
                 let y = doc_inner.y + (row - ui.doc_scroll) as u16;
                 if y < doc_inner.y + doc_inner.height {
-                    let x = doc_inner.x + (col as u16).min(doc_inner.width.saturating_sub(1));
+                    let available = doc_inner.width - gutter;
+                    let x = doc_inner.x + gutter + (col as u16).min(available - 1);
                     frame.set_cursor_position((x, y));
                 }
             }
@@ -74,5 +80,16 @@ pub fn draw(
 
     if let Mode::Help { query } = &ui.mode {
         help::draw(frame, frame.area(), palette, &app.keymap, query);
+    }
+
+    if let Mode::Settings { row } = &ui.mode {
+        settings::draw(
+            frame,
+            frame.area(),
+            palette,
+            ui.theme_choice,
+            ui.line_indicator,
+            *row,
+        );
     }
 }

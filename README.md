@@ -41,7 +41,13 @@ tmr ~/notes
 - A live cursor locator while editing: raw source view, auto-scroll, a
   real blinking terminal caret, and a `Ln X, Col Y` status readout, so
   you always know where a keystroke will land.
+- Line numbers in the Document pane's gutter (both the normal rendered
+  view and the raw Edit-mode view).
 - A searchable command-reference popup (`h`, when no document is open).
+- A Settings window (`s`) for live interface customization: pick a color
+  theme (`Default` / `Dark` / `Light (grey)`) and how the current line is
+  marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
+  needed.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -111,6 +117,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `d`         | Delete selected file (asks to confirm with `y`)      |
 | `ctrl+r`    | Reload the current directory listing                |
 | `h`         | Open the command-reference popup (only when no document is open); type to filter, `esc` to close |
+| `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `q`         | Quit                                                 |
 
 ## Configuration
@@ -132,14 +139,19 @@ compiled-in addons/widgets to enable by id).
 
 ### Themes
 
-`[theme] name = "dark"` (the default) or `"light"` select a built-in
-palette. Any other name is looked up at
+`[theme] name = "dark"` (the default), `"light"`, or `"grey"` select a
+built-in palette — `grey` is a neutral, monochrome light theme, distinct
+from `light`'s blue/lavender tint. Any other name is looked up at
 `~/.config/tmr/themes/<name>.toml` — see
-[`config/themes/dark.toml`](config/themes/dark.toml) and
-[`config/themes/light.toml`](config/themes/light.toml) for the format
+[`config/themes/dark.toml`](config/themes/dark.toml),
+[`config/themes/light.toml`](config/themes/light.toml), and
+[`config/themes/grey.toml`](config/themes/grey.toml) for the format
 (plain `foreground`/`background`/`accent`/`border`/`muted`/`success`/
 `warning`/`error` hex colors). Copy one, tweak the colors, and point
-`[theme] name` at your new file's name — no rebuild needed.
+`[theme] name` at your new file's name — no rebuild needed. To try
+`Dark`/`Light (grey)` without touching `config.toml`, use the in-app
+Settings window (`s`) instead — see [Keybindings](#keybindings); that
+switch is live but session-only (not saved to disk).
 
 ## Architecture
 
@@ -233,6 +245,13 @@ as part of any change that adds/fixes user-facing behavior.
       terminal caret, and a `Ln X, Col Y` status readout
 - [x] `h` command-reference popup (searchable, only when no document is
       open)
+- [x] Line numbers in the Document pane's gutter
+- [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
+      and a Highlight-vs-Bar current-line indicator
+- [ ] Persist Settings-window choices (theme, line indicator) to
+      `config.toml` — they currently apply live but are session-only,
+      reset to `[theme] name`'s configured value and `Highlight` on
+      restart
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Sync the editor's opening cursor position to the line you were viewing
 - [ ] Horizontal scroll for the Edit-mode cursor locator: a column past

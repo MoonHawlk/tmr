@@ -5,6 +5,7 @@ pub mod input;
 pub mod keymap;
 pub mod layout;
 pub mod markdown_view;
+pub mod settings;
 pub mod state;
 pub mod theme;
 pub mod ui;
@@ -57,8 +58,10 @@ pub fn run(mut app: App) -> io::Result<()> {
 }
 
 fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> io::Result<()> {
-    let mut ui = UiState::default();
-    let palette = Palette::from_theme(&app.theme);
+    let mut ui = UiState {
+        default_theme: app.theme.clone(),
+        ..UiState::default()
+    };
     let image_cap = image_backend::detect_capability();
     let resolved_keymap = app.keymap.resolve();
     let tab_width = app.config.editor.tab_width;
@@ -70,6 +73,11 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
     }
 
     loop {
+        // Recomputed every iteration (cheap: a handful of hex-string
+        // parses) rather than once outside the loop, since the Settings
+        // window can change `app.theme` live — this keeps every frame in
+        // sync without needing a separate "theme changed" flag.
+        let palette = Palette::from_theme(&app.theme);
         terminal.draw(|f| ui::draw(f, app, &ui, &palette, image_cap))?;
 
         let has_ticking_widget = app

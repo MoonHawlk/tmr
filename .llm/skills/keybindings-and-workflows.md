@@ -36,6 +36,13 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
   with `h` when no document is open (Edit mode intercepts `h` as a
   literal character, so this never fires mid-edit). Typing filters the
   list; `Esc` closes it; nothing in this mode dispatches a `Command`.
+- **Settings** — the interface-customization window, entered with `s`
+  (available regardless of focus or whether a document is open — Edit
+  mode intercepts `s` as a literal character the same way it does `h`).
+  `Up`/`Down` moves between its two rows (Theme, Line indicator); `Left`/
+  `Right`/`Enter` cycles the highlighted row's value, applying it
+  immediately; `Esc` closes. See `crates/tui/src/settings.rs` and
+  `crates/tui/src/input.rs::handle_settings_key`.
 
 In **Search**/**Prompt** modes, every typed character is appended to the
 buffer (not looked up in the keymap) — so typing `q` while naming a new
@@ -62,6 +69,7 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `Ctrl+R` | `reload` | Re-list the current directory from disk |
 | `y` | `confirm` | Confirms a pending delete (Confirm mode only) |
 | `h` | `help` | Opens the command-reference popup — only fires when no document is open |
+| `s` | `settings` | Opens the Settings window (theme, line indicator) |
 | `q` | `quit` | Exit tmr |
 
 ## Step-by-step workflows
@@ -90,6 +98,11 @@ Obsidian-style rendering.
 
 **Look up a command**: any pane, no document open, `h` → type to filter
 → `Esc` to close. Read-only; it doesn't run anything.
+
+**Change the theme or current-line indicator**: any pane, any time,
+`s` → `Up`/`Down` to the row you want → `Left`/`Right`/`Enter` to cycle
+its value → `Esc` to close. Both apply live; neither is written to
+`config.toml` (session-only — see `configuration.md`'s Themes section).
 
 **Create a note**: any pane, `Ctrl+N` → type a filename (e.g.
 `idea.md`) → `Enter`. Created empty in the *current* directory (the one

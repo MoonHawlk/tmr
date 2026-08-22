@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use tmr_core::theme::Theme;
+
 use crate::editor::Editor;
 use crate::markdown_view::RenderedLine;
 
@@ -56,6 +58,89 @@ pub enum Mode {
     Help {
         query: String,
     },
+    /// The interface-customization window, opened with `s` (default
+    /// binding). `row` is the currently highlighted setting (0 = Theme,
+    /// 1 = Line indicator); Up/Down moves between rows, Left/Right/Enter
+    /// cycles the highlighted row's value, applied live. Esc closes it.
+    Settings {
+        row: usize,
+    },
+}
+
+/// The three theme options the Settings window offers. `Default` is
+/// whatever theme tmr loaded at startup (from `config.toml`) — captured
+/// once in `UiState::default_theme` — so switching to `Dark` or `Light`
+/// and back to `Default` always returns to the user's configured theme,
+/// not to `Theme::dark()`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThemeChoice {
+    Default,
+    Dark,
+    Light,
+}
+
+impl ThemeChoice {
+    pub const ALL: [ThemeChoice; 3] = [ThemeChoice::Default, ThemeChoice::Dark, ThemeChoice::Light];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            ThemeChoice::Default => "Default",
+            ThemeChoice::Dark => "Dark",
+            ThemeChoice::Light => "Light (grey)",
+        }
+    }
+
+    pub fn next(self) -> Self {
+        match self {
+            ThemeChoice::Default => ThemeChoice::Dark,
+            ThemeChoice::Dark => ThemeChoice::Light,
+            ThemeChoice::Light => ThemeChoice::Default,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            ThemeChoice::Default => ThemeChoice::Light,
+            ThemeChoice::Dark => ThemeChoice::Default,
+            ThemeChoice::Light => ThemeChoice::Dark,
+        }
+    }
+
+    /// Resolves this choice to an actual [`Theme`], given the theme tmr
+    /// loaded at startup (what `Default` means).
+    pub fn resolve(self, default_theme: &Theme) -> Theme {
+        match self {
+            ThemeChoice::Default => default_theme.clone(),
+            ThemeChoice::Dark => Theme::dark(),
+            ThemeChoice::Light => Theme::light_grey(),
+        }
+    }
+}
+
+/// How the Document pane marks the cursor's current line.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LineIndicatorStyle {
+    /// Reverse-video the whole line (the original/default behavior).
+    Highlight,
+    /// A single `▏` marker in the gutter, next to the line number — closer
+    /// to how a plain terminal cursor marks a position.
+    Bar,
+}
+
+impl LineIndicatorStyle {
+    pub fn label(self) -> &'static str {
+        match self {
+            LineIndicatorStyle::Highlight => "Highlight",
+            LineIndicatorStyle::Bar => "Bar (\u{258F})",
+        }
+    }
+
+    pub fn toggled(self) -> Self {
+        match self {
+            LineIndicatorStyle::Highlight => LineIndicatorStyle::Bar,
+            LineIndicatorStyle::Bar => LineIndicatorStyle::Highlight,
+        }
+    }
 }
 
 /// All interaction/presentation state that isn't part of the core engine:
@@ -72,6 +157,14 @@ pub struct UiState {
     pub status: Option<(String, StatusLevel)>,
     pub rendered: Vec<RenderedLine>,
     pub search_matches: Vec<usize>,
+    pub theme_choice: ThemeChoice,
+    pub line_indicator: LineIndicatorStyle,
+    /// The theme tmr loaded at startup, snapshotted once so the Settings
+    /// window's `Default` option always means "what config.toml selected",
+    /// even after switching to `Dark`/`Light` and back. Set right after
+    /// construction in `lib.rs::run_loop`, once `App`'s theme is known —
+    /// `UiState::default()` can't see it, so this starts as a placeholder.
+    pub default_theme: Theme,
 }
 
 impl Default for UiState {
@@ -86,6 +179,9 @@ impl Default for UiState {
             status: None,
             rendered: Vec::new(),
             search_matches: Vec::new(),
+            theme_choice: ThemeChoice::Default,
+            line_indicator: LineIndicatorStyle::Highlight,
+            default_theme: Theme::default(),
         }
     }
 }

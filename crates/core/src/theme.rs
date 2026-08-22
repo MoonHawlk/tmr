@@ -55,6 +55,24 @@ impl Theme {
         }
     }
 
+    /// A neutral, monochrome light palette — distinct from [`Theme::light`]
+    /// (which is blue/lavender-tinted): every chrome color here is a shade
+    /// of grey, with only the semantic status colors (success/warning/
+    /// error) keeping their hue so task/status feedback stays legible.
+    pub fn light_grey() -> Self {
+        Theme {
+            name: "grey".into(),
+            foreground: "#3a3a3a".into(),
+            background: "#f4f4f4".into(),
+            accent: "#111111".into(),
+            border: "#bbbbbb".into(),
+            muted: "#8f8f8f".into(),
+            success: "#3f7d3f".into(),
+            warning: "#a67c00".into(),
+            error: "#a83232".into(),
+        }
+    }
+
     /// Resolves a theme by name: tries `<config_dir>/themes/<name>.toml`
     /// first, then falls back to a built-in palette ("dark"/"light"), then
     /// finally to the built-in dark palette if the name is unrecognized.
@@ -81,6 +99,7 @@ impl Theme {
         match name {
             "dark" => (Theme::dark(), None),
             "light" => (Theme::light(), None),
+            "grey" | "gray" => (Theme::light_grey(), None),
             other => (
                 Theme::dark(),
                 Some(format!("unknown theme '{other}', falling back to 'dark'")),
@@ -91,6 +110,7 @@ impl Theme {
     fn built_in_or_dark(name: &str) -> Theme {
         match name {
             "light" => Theme::light(),
+            "grey" | "gray" => Theme::light_grey(),
             _ => Theme::dark(),
         }
     }

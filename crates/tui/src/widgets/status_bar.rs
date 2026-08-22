@@ -66,6 +66,13 @@ pub fn draw(
             Span::styled("_  ", Style::default().fg(palette.muted)),
             Span::styled("esc close", Style::default().fg(palette.muted)),
         ]),
+        Mode::Settings { .. } => Line::from(vec![
+            Span::styled("SETTINGS ", Style::default().fg(palette.accent)),
+            Span::styled(
+                "up/down select · left/right change · esc close",
+                Style::default().fg(palette.muted),
+            ),
+        ]),
         Mode::Normal => {
             if let Some((msg, level)) = &ui.status {
                 let color = match level {
@@ -81,7 +88,7 @@ pub fn draw(
                 Line::from(vec![
                     Span::raw(format!("{name}{mark}  ")),
                     Span::styled(
-                        "tab focus · enter open/edit · space toggle · / search · ctrl+n new · d delete · h help · q quit",
+                        "tab focus · enter open/edit · space toggle · / search · ctrl+n new · d delete · h help · s settings · q quit",
                         Style::default().fg(palette.muted),
                     ),
                 ])
