@@ -35,8 +35,9 @@ default_dir = "~/notes"   # used only when tmr is launched with no path argument
 name = "dark"              # "dark", "light", or a name looked up in themes/<name>.toml
 
 [ui]
-border = "ascii"           # "ascii" | "rounded" | "none"
+border = "ascii"           # "ascii" | "rounded" | "double" | "none"
 show_hidden = false        # include dotfiles in the Files pane
+timer = false               # show a live UTC clock bar above the Files/Document panes
 
 [editor]
 tab_width = 4               # spaces inserted by Tab in the built-in editor

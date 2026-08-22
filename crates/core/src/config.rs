@@ -31,6 +31,11 @@ impl Default for ThemeSelection {
 pub enum BorderStyle {
     Ascii,
     Rounded,
+    /// Double-line box-drawing borders (`╔ ═ ╗ / ║ ║ / ╚ ═ ╝`) — a denser,
+    /// more app-like panel look than the plain-terminal `+---+` default,
+    /// closer to a classic boxed TUI (Turbo Vision, Norton Commander) than
+    /// a raw ASCII sketch.
+    Double,
     None,
 }
 

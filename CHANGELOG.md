@@ -142,6 +142,12 @@ the README's [TODO section](README.md#todo) for what's still open.
   test image. Only the shipped example files are tracked in git;
   anything else created inside `sandbox/` during testing is ignored.
 
+- A `"double"` border style: `[ui] border = "double"` draws panes with
+  double box-drawing lines (`╔═╗`/`║`/`╚═╝`) instead of the plain-ASCII
+  `+---+` default — a denser, more application-panel look. See
+  `BorderStyle::Double` (`crates/core/src/config.rs`) and
+  `layout::DOUBLE_BORDER`/`styled_block`.
+
 ### Fixed
 
 - Status bar no longer gets stuck on a transient message (e.g. "Saved",

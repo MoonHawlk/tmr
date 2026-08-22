@@ -63,6 +63,10 @@ tmr ~/notes
 - An optional Timer bar (`[ui] timer = true`): a thin strip at the very
   top of the TUI, above the Files/Document panes, showing the current
   time (UTC), updated live once a second. Off by default.
+- A `"double"` border style (`[ui] border = "double"`) alongside the
+  default `"ascii"`, `"rounded"`, and `"none"` — double box-drawing lines
+  (`╔═╗`/`║`/`╚═╝`) for a denser, more application-panel look than the
+  plain `+---+` terminal sketch.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -315,7 +319,9 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Add a new "config" possibility, name timer, showing the current time at the top of the TUI, between the bars.
       — `[ui] timer = true`: a thin, live-updating UTC clock bar above the Files/Document panes
       (`crates/tui/src/widgets/timer_bar.rs`, `tmr_core::datetime`).
-- [ ] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
+- [x] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
+      — new `[ui] border = "double"` style: double box-drawing lines (`╔═╗`/`║`/`╚═╝`)
+      (`crates/tui/src/layout.rs::DOUBLE_BORDER`).
 - [ ] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
       a mini-preview of a calender with the current month adjusted and aligned.
 - [ ] Double-click/word-level selection
