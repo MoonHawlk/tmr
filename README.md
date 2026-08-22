@@ -67,6 +67,9 @@ tmr ~/notes
   default `"ascii"`, `"rounded"`, and `"none"` — double box-drawing lines
   (`╔═╗`/`║`/`╚═╝`) for a denser, more application-panel look than the
   plain `+---+` terminal sketch.
+- A Calendar window (`alt+c`): a small popup with a mini month-preview
+  grid, aligned like a standard calendar (weekday columns, today's day
+  highlighted). `left`/`right` moves to the adjacent month, `esc` closes.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -151,6 +154,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
 | `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
+| `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
 | `q`         | Quit                                                 |
 
 ## Configuration
@@ -322,8 +326,10 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Add a new style grid, instead of using +---+, use more like "UI" elements, instead of just terminal
       — new `[ui] border = "double"` style: double box-drawing lines (`╔═╗`/`║`/`╚═╝`)
       (`crates/tui/src/layout.rs::DOUBLE_BORDER`).
-- [ ] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
+- [x] Create a new windows, called Calendar, that you can check using alt + c, at the terminal, allowing the user to see
       a mini-preview of a calender with the current month adjusted and aligned.
+      — a popup with a weekday-aligned month grid, today highlighted, `left`/`right` to change month
+      (`crates/tui/src/calendar.rs`, `tmr_core::datetime`).
 - [ ] Double-click/word-level selection
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)

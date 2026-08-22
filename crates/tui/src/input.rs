@@ -95,6 +95,9 @@ pub fn handle_key(
         Mode::Settings { .. } => {
             handle_settings_key(ui, app, key, image_cap, width);
         }
+        Mode::Calendar { .. } => {
+            handle_calendar_key(ui, key);
+        }
         Mode::Edit => {
             let action = resolved_keymap.get(&key).map(String::as_str);
             if action == Some("save") {
@@ -262,6 +265,9 @@ fn handle_action(
         }
         "settings" => {
             ui.mode = Mode::Settings { row: 0 };
+        }
+        "calendar" => {
+            ui.mode = Mode::Calendar { month_offset: 0 };
         }
         _ => {}
     }
@@ -637,6 +643,30 @@ fn persist_settings(ui: &mut UiState) {
             format!("Settings applied but not saved: {e}"),
             StatusLevel::Error,
         );
+    }
+}
+
+/// `left`/`right` moves `month_offset` to the adjacent month; any other key
+/// leaves it unchanged. `esc` closes the window (handled implicitly: the
+/// `std::mem::replace` below already defaults to `Mode::Normal`, and no
+/// arm re-enters `Calendar` for it).
+fn handle_calendar_key(ui: &mut UiState, key: Key) {
+    let Mode::Calendar { month_offset } = std::mem::replace(&mut ui.mode, Mode::Normal) else {
+        return;
+    };
+    match key.code {
+        KeyCode::Esc => {}
+        KeyCode::Left => {
+            ui.mode = Mode::Calendar {
+                month_offset: month_offset - 1,
+            }
+        }
+        KeyCode::Right => {
+            ui.mode = Mode::Calendar {
+                month_offset: month_offset + 1,
+            }
+        }
+        _ => ui.mode = Mode::Calendar { month_offset },
     }
 }
 

@@ -2,6 +2,7 @@ use ratatui::Frame;
 
 use tmr_core::app::App;
 
+use crate::calendar;
 use crate::help;
 use crate::image_backend::ImageCapability;
 use crate::layout::compute_panes;
@@ -107,5 +108,9 @@ pub fn draw(
             ui.line_indicator,
             *row,
         );
+    }
+
+    if let Mode::Calendar { month_offset } = &ui.mode {
+        calendar::draw(frame, frame.area(), palette, *month_offset);
     }
 }

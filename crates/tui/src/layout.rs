@@ -84,12 +84,12 @@ const ASCII_BORDER: border::Set = border::Set {
 /// A denser, more "application UI" panel look than `ASCII_BORDER` — double
 /// box-drawing lines instead of a plain `+---+` sketch.
 const DOUBLE_BORDER: border::Set = border::Set {
-    top_left: "\u{2554}",     // ╔
-    top_right: "\u{2557}",    // ╗
-    bottom_left: "\u{255a}",  // ╚
-    bottom_right: "\u{255d}", // ╝
-    vertical_left: "\u{2551}",   // ║
-    vertical_right: "\u{2551}",  // ║
+    top_left: "\u{2554}",          // ╔
+    top_right: "\u{2557}",         // ╗
+    bottom_left: "\u{255a}",       // ╚
+    bottom_right: "\u{255d}",      // ╝
+    vertical_left: "\u{2551}",     // ║
+    vertical_right: "\u{2551}",    // ║
     horizontal_top: "\u{2550}",    // ═
     horizontal_bottom: "\u{2550}", // ═
 };

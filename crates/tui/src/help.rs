@@ -40,6 +40,7 @@ const ENTRIES: &[(&str, &str)] = &[
         "settings",
         "Open the Settings window (theme, line indicator)",
     ),
+    ("calendar", "Open the Calendar window (mini month preview)"),
     ("quit", "Quit tmr"),
 ];
 

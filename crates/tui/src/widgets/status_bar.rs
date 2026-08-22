@@ -73,6 +73,13 @@ pub fn draw(
                 Style::default().fg(palette.muted),
             ),
         ]),
+        Mode::Calendar { .. } => Line::from(vec![
+            Span::styled("CALENDAR ", Style::default().fg(palette.accent)),
+            Span::styled(
+                "left/right month · esc close",
+                Style::default().fg(palette.muted),
+            ),
+        ]),
         Mode::Normal => {
             if let Some((msg, level, _)) = &ui.status {
                 let color = match level {

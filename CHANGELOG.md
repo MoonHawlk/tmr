@@ -142,6 +142,12 @@ the README's [TODO section](README.md#todo) for what's still open.
   test image. Only the shipped example files are tracked in git;
   anything else created inside `sandbox/` during testing is ignored.
 
+- A Calendar window: `alt+c` (new default binding) opens a small popup
+  with a mini month-preview grid, weekday-aligned like a standard
+  calendar, with today's day highlighted. `left`/`right` moves to the
+  adjacent month; `esc` closes it. Purely visual, like the `h`/`s`
+  windows — nothing here dispatches a `Command`. See
+  `crates/tui/src/calendar.rs` and `tmr_core::datetime::CivilDate`.
 - A `"double"` border style: `[ui] border = "double"` draws panes with
   double box-drawing lines (`╔═╗`/`║`/`╚═╝`) instead of the plain-ASCII
   `+---+` default — a denser, more application-panel look. See

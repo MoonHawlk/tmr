@@ -79,6 +79,15 @@ pub enum Mode {
     Settings {
         row: usize,
     },
+    /// The Calendar window, opened with `alt+c` (default binding): a
+    /// mini month-preview grid, aligned like a standard calendar, with
+    /// today's day highlighted when viewing the current month.
+    /// `month_offset` is the number of months away from the current one
+    /// (0 = this month); `left`/`right` moves it. Esc closes it. Nothing
+    /// in this mode dispatches a `Command`.
+    Calendar {
+        month_offset: i32,
+    },
 }
 
 /// The three theme options the Settings window offers. `Default` is

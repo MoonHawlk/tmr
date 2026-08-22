@@ -1,3 +1,4 @@
+pub mod calendar;
 pub mod clipboard;
 pub mod editor;
 pub mod help;

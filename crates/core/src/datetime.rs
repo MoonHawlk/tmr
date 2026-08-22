@@ -26,11 +26,7 @@ pub fn now_unix_secs() -> u64 {
 /// `(hour, minute, second)` within the day, UTC.
 pub fn time_of_day(unix_secs: u64) -> (u32, u32, u32) {
     let s = unix_secs % 86_400;
-    (
-        (s / 3600) as u32,
-        ((s % 3600) / 60) as u32,
-        (s % 60) as u32,
-    )
+    ((s / 3600) as u32, ((s % 3600) / 60) as u32, (s % 60) as u32)
 }
 
 /// A proleptic-Gregorian calendar date (UTC).
@@ -72,6 +68,19 @@ impl CivilDate {
         CivilDate {
             year: self.year,
             month: self.month,
+            day: 1,
+        }
+    }
+
+    /// This date's month, shifted by `delta` months (may be negative),
+    /// wrapping the year as needed. `day` is fixed to `1`, matching
+    /// `first_of_month` — callers that only need a month grid (the
+    /// Calendar window) never need a specific day here.
+    pub fn month_shifted(self, delta: i32) -> Self {
+        let zero_based = (self.month as i32 - 1) + delta;
+        CivilDate {
+            year: self.year + zero_based.div_euclid(12),
+            month: (zero_based.rem_euclid(12) + 1) as u32,
             day: 1,
         }
     }
@@ -166,6 +175,57 @@ mod tests {
     #[test]
     fn time_of_day_splits_seconds_correctly() {
         assert_eq!(time_of_day(3_661), (1, 1, 1));
+    }
+
+    #[test]
+    fn month_shifted_wraps_forward_across_a_year_boundary() {
+        let date = CivilDate {
+            year: 2026,
+            month: 12,
+            day: 22,
+        };
+        assert_eq!(
+            date.month_shifted(1),
+            CivilDate {
+                year: 2027,
+                month: 1,
+                day: 1
+            }
+        );
+    }
+
+    #[test]
+    fn month_shifted_wraps_backward_across_a_year_boundary() {
+        let date = CivilDate {
+            year: 2026,
+            month: 1,
+            day: 15,
+        };
+        assert_eq!(
+            date.month_shifted(-1),
+            CivilDate {
+                year: 2025,
+                month: 12,
+                day: 1
+            }
+        );
+    }
+
+    #[test]
+    fn month_shifted_handles_multi_year_deltas() {
+        let date = CivilDate {
+            year: 2026,
+            month: 6,
+            day: 1,
+        };
+        assert_eq!(
+            date.month_shifted(13),
+            CivilDate {
+                year: 2027,
+                month: 7,
+                day: 1
+            }
+        );
     }
 
     #[test]

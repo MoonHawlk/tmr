@@ -45,6 +45,13 @@ The app is a small state machine (`crates/tui/src/state.rs::Mode`):
   `Right`/`Enter` cycles the highlighted row's value, applying it
   immediately; `Esc` closes. See `crates/tui/src/settings.rs` and
   `crates/tui/src/input.rs::handle_settings_key`.
+- **Calendar** — a mini month-preview popup, entered with `Alt+C`. Shows a
+  weekday-aligned grid for the current month with today's day highlighted;
+  `Left`/`Right` moves to the adjacent month (tracked as `month_offset`,
+  relative to the current month); `Esc` closes. Purely visual, nothing in
+  this mode dispatches a `Command`. See `crates/tui/src/calendar.rs`,
+  `tmr_core::datetime::CivilDate`, and
+  `crates/tui/src/input.rs::handle_calendar_key`.
 
 In **Search**/**Prompt** modes, every typed character is appended to the
 buffer (not looked up in the keymap) — so typing `q` while naming a new
@@ -73,6 +80,7 @@ opposite: it does *not* accept free text, only the `confirm` action
 | `Shift+↑↓←→`/`Shift+Home`/`Shift+End` | *(none — handled inside Edit mode, not the action keymap)* | Edit mode only: extend a text selection from the cursor |
 | `h` | `help` | Opens the command-reference popup |
 | `s` | `settings` | Opens the Settings window (theme, line indicator) |
+| `Alt+C` | `calendar` | Opens the Calendar window (mini month preview) |
 | `q` | `quit` | Exit tmr |
 
 ## Step-by-step workflows
