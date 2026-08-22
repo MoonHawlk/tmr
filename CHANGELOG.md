@@ -7,6 +7,17 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ## [Unreleased]
 
+### Added
+
+- `setup.sh`: quick environment setup — checks for a Rust toolchain
+  (offers to install via `rustup` if missing), fetches dependencies,
+  builds the release binary, and optionally installs it onto `PATH` and
+  seeds `~/.config/tmr/config.toml` from the example config.
+- `debug.sh`: a dev-loop inspection helper — toolchain/config info,
+  `cargo check`/`clippy`/`fmt --check`/`test`, a debug build, and
+  (`./debug.sh run [DIR]`) launching tmr with `RUST_BACKTRACE=full`
+  against `sandbox/` by default.
+
 ### Fixed
 
 - Status bar no longer gets stuck on a transient message (e.g. "Saved",

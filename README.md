@@ -68,6 +68,17 @@ tmr ~/notes
 - Architecture prepared for more document formats, TUI widgets and addons,
   without those being fully built out in v1 (see Roadmap).
 
+### Quick setup
+
+`./setup.sh` checks for a Rust toolchain (offering to install one via
+`rustup` if missing), fetches dependencies, builds the release binary, and
+optionally installs it onto your `PATH` and creates
+`~/.config/tmr/config.toml` from the example — see `./setup.sh --help`.
+`./debug.sh` is the day-to-day dev-loop companion: toolchain/config info,
+`cargo check`/`clippy`/`fmt --check`/`test`, a debug build, and (with
+`./debug.sh run [DIR]`) launching tmr itself with `RUST_BACKTRACE=full`
+against `sandbox/` by default — see `./debug.sh --help`.
+
 ## Install / Build
 
 Requires a Rust toolchain (stable, 2021 edition; developed against 1.98).
@@ -290,8 +301,8 @@ as part of any change that adds/fixes user-facing behavior.
       `ctrl+x` in Edit mode, via an OSC 52 terminal escape sequence — no
       new dependency, and it works over SSH/tmux where a native clipboard
       API has no path back to the desktop)
-- [ ] Make a setup .sh file, to quick install and prepare the enviroment to work.
-- [ ] Make a debbug .sh, to allow quick inspection
+- [x] Make a setup .sh file, to quick install and prepare the enviroment to work.
+- [x] Make a debbug .sh, to allow quick inspection
 - [x] (BUG) After some command, the status bar, changes, staying static till another command is provided.
       This is not an expected situation. After any new status, if the user does not make any more commands,
       the status should be reset, and displayed the default "helper" bar. — fixed: transient status
