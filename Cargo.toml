@@ -1,0 +1,41 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/markdown", "crates/tui"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/local/tmr"
+
+[workspace.dependencies]
+tmr-core = { path = "crates/core" }
+tmr-markdown = { path = "crates/markdown" }
+tmr-tui = { path = "crates/tui" }
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+dirs = "5"
+
+[package]
+name = "tmr"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Terminal Markdown Reader - a fast, modular TUI for working with Markdown notes"
+
+[[bin]]
+name = "tmr"
+path = "src/main.rs"
+
+[dependencies]
+tmr-core = { workspace = true }
+tmr-tui = { workspace = true }
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

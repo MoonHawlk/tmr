@@ -1,0 +1,9 @@
+[package]
+name = "tmr-markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Markdown parsing for tmr: turns source text into a renderer-agnostic block/inline AST, and supports toggling task-list checkboxes in place."
+
+[dependencies]
+pulldown-cmark = { version = "0.10", default-features = false }

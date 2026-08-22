@@ -1,0 +1,60 @@
+# Example tmr configuration.
+#
+# Copy this file to ~/.config/tmr/config.toml (or wherever your platform's
+# XDG config dir points — $XDG_CONFIG_HOME/tmr/config.toml) and edit it.
+# Every key below has a built-in default, so an absent file (or an absent
+# key within an existing file) is never an error — tmr just uses defaults
+# and, for a genuinely invalid file, prints a warning and falls back.
+
+[workspace]
+# Directory tmr opens when launched with no path argument. If unset, tmr
+# uses the current working directory. A CLI argument (`tmr ~/notes`)
+# always takes priority over this.
+# default_dir = "~/notes"
+
+[theme]
+# Selects a theme by name. "dark" and "light" are built in. Any other name
+# is looked up at <config_dir>/themes/<name>.toml (see config/themes/ in
+# this repo for examples) — falls back to "dark" if not found.
+name = "dark"
+
+[ui]
+# Border style for panes: "ascii" (+--+ style), "rounded", or "none".
+border = "ascii"
+# Show dotfiles in the file browser.
+show_hidden = false
+
+[editor]
+# Number of spaces inserted by Tab in the built-in editor.
+tab_width = 4
+
+[keys]
+# Every action is remappable. Uncomment and change any of these; unset
+# actions keep their default binding. Key specs look like "q", "ctrl+s",
+# "ctrl+shift+n", "esc", "enter", "space", "up"/"down"/"left"/"right", etc.
+# quit = "q"
+# save = "ctrl+s"
+# search = "/"
+# new_file = "ctrl+n"
+# delete = "d"
+# rename = "r"
+# reload = "ctrl+r"
+# toggle_task = "space"
+# edit = "enter"
+# cancel = "esc"
+# confirm = "y"
+# nav_up = "up"
+# nav_down = "down"
+# nav_enter = "right"
+# nav_back = "left"
+# focus_files = "tab"
+
+[addons]
+# Addons compiled into this build of tmr, enabled by id. See
+# crates/core/src/addon.rs — v1 ships one example addon, "stats".
+enabled = []
+
+[widgets]
+# Widgets compiled into this build of tmr, enabled by id. See
+# crates/core/src/widget.rs — v1 ships one example widget, "clock".
+enabled = []

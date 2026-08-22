@@ -1,0 +1,11 @@
+# tmr theme — light. Install at ~/.config/tmr/themes/light.toml to
+# override, or set `[theme] name = "light"` in config.toml to select it.
+name = "light"
+foreground = "#4c4f69"
+background = "#eff1f5"
+accent = "#1e66f5"
+border = "#9ca0b0"
+muted = "#8c8fa1"
+success = "#40a02b"
+warning = "#df8e1d"
+error = "#d20f39"

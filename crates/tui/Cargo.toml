@@ -1,0 +1,13 @@
+[package]
+name = "tmr-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Terminal UI for tmr, built on ratatui/crossterm. Depends on tmr-core and tmr-markdown; the core never depends back on this crate."
+
+[dependencies]
+tmr-core = { workspace = true }
+tmr-markdown = { workspace = true }
+ratatui = "0.28"
+crossterm = "0.28"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }

@@ -1,0 +1,249 @@
+//! A minimal, dependency-free multi-line text buffer for the Edit mode.
+//!
+//! This is deliberately small (insert, delete, arrow navigation) rather
+//! than a full editor — tmr is not trying to be Vim. It exists so the MVP
+//! can edit Markdown in place; see the README roadmap for "external editor"
+//! as a possible future alternative for power users.
+pub struct Editor {
+    lines: Vec<String>,
+    cursor_row: usize,
+    cursor_col: usize,
+    scroll: usize,
+    tab_width: usize,
+    dirty: bool,
+}
+
+fn char_to_byte(line: &str, char_idx: usize) -> usize {
+    line.char_indices()
+        .nth(char_idx)
+        .map(|(b, _)| b)
+        .unwrap_or(line.len())
+}
+
+impl Editor {
+    pub fn new(content: &str, tab_width: usize) -> Self {
+        let lines: Vec<String> = if content.is_empty() {
+            vec![String::new()]
+        } else {
+            content.split('\n').map(String::from).collect()
+        };
+        Editor {
+            lines,
+            cursor_row: 0,
+            cursor_col: 0,
+            scroll: 0,
+            tab_width: tab_width.max(1),
+            dirty: false,
+        }
+    }
+
+    pub fn to_content(&self) -> String {
+        self.lines.join("\n")
+    }
+
+    pub fn lines(&self) -> &[String] {
+        &self.lines
+    }
+
+    pub fn cursor(&self) -> (usize, usize) {
+        (self.cursor_row, self.cursor_col)
+    }
+
+    pub fn scroll(&self) -> usize {
+        self.scroll
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    pub fn mark_saved(&mut self) {
+        self.dirty = false;
+    }
+
+    fn current_line_len(&self) -> usize {
+        self.lines[self.cursor_row].chars().count()
+    }
+
+    fn clamp_col(&mut self) {
+        self.cursor_col = self.cursor_col.min(self.current_line_len());
+    }
+
+    pub fn insert_char(&mut self, c: char) {
+        let byte_idx = char_to_byte(&self.lines[self.cursor_row], self.cursor_col);
+        self.lines[self.cursor_row].insert(byte_idx, c);
+        self.cursor_col += 1;
+        self.dirty = true;
+    }
+
+    pub fn insert_tab(&mut self) {
+        for _ in 0..self.tab_width {
+            self.insert_char(' ');
+        }
+    }
+
+    pub fn insert_newline(&mut self) {
+        let line = self.lines[self.cursor_row].clone();
+        let byte_idx = char_to_byte(&line, self.cursor_col);
+        let (left, right) = line.split_at(byte_idx);
+        self.lines[self.cursor_row] = left.to_string();
+        self.lines.insert(self.cursor_row + 1, right.to_string());
+        self.cursor_row += 1;
+        self.cursor_col = 0;
+        self.dirty = true;
+    }
+
+    pub fn backspace(&mut self) {
+        if self.cursor_col > 0 {
+            let line = &mut self.lines[self.cursor_row];
+            let from = char_to_byte(line, self.cursor_col - 1);
+            let to = char_to_byte(line, self.cursor_col);
+            line.replace_range(from..to, "");
+            self.cursor_col -= 1;
+            self.dirty = true;
+        } else if self.cursor_row > 0 {
+            let current = self.lines.remove(self.cursor_row);
+            self.cursor_row -= 1;
+            self.cursor_col = self.current_line_len();
+            self.lines[self.cursor_row].push_str(&current);
+            self.dirty = true;
+        }
+    }
+
+    pub fn delete_forward(&mut self) {
+        let len = self.current_line_len();
+        if self.cursor_col < len {
+            let line = &mut self.lines[self.cursor_row];
+            let from = char_to_byte(line, self.cursor_col);
+            let to = char_to_byte(line, self.cursor_col + 1);
+            line.replace_range(from..to, "");
+            self.dirty = true;
+        } else if self.cursor_row + 1 < self.lines.len() {
+            let next = self.lines.remove(self.cursor_row + 1);
+            self.lines[self.cursor_row].push_str(&next);
+            self.dirty = true;
+        }
+    }
+
+    pub fn move_left(&mut self) {
+        if self.cursor_col > 0 {
+            self.cursor_col -= 1;
+        } else if self.cursor_row > 0 {
+            self.cursor_row -= 1;
+            self.cursor_col = self.current_line_len();
+        }
+    }
+
+    pub fn move_right(&mut self) {
+        if self.cursor_col < self.current_line_len() {
+            self.cursor_col += 1;
+        } else if self.cursor_row + 1 < self.lines.len() {
+            self.cursor_row += 1;
+            self.cursor_col = 0;
+        }
+    }
+
+    pub fn move_up(&mut self) {
+        if self.cursor_row > 0 {
+            self.cursor_row -= 1;
+            self.clamp_col();
+        }
+    }
+
+    pub fn move_down(&mut self) {
+        if self.cursor_row + 1 < self.lines.len() {
+            self.cursor_row += 1;
+            self.clamp_col();
+        }
+    }
+
+    pub fn move_home(&mut self) {
+        self.cursor_col = 0;
+    }
+
+    pub fn move_end(&mut self) {
+        self.cursor_col = self.current_line_len();
+    }
+
+    /// Keeps the cursor within a viewport of `height` visible lines.
+    pub fn ensure_visible(&mut self, height: usize) {
+        if height == 0 {
+            return;
+        }
+        if self.cursor_row < self.scroll {
+            self.scroll = self.cursor_row;
+        } else if self.cursor_row >= self.scroll + height {
+            self.scroll = self.cursor_row - height + 1;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn insert_and_serialize_roundtrip() {
+        let mut ed = Editor::new("hello", 4);
+        ed.move_end();
+        ed.insert_char('!');
+        assert_eq!(ed.to_content(), "hello!");
+    }
+
+    #[test]
+    fn newline_splits_line() {
+        let mut ed = Editor::new("abcdef", 4);
+        for _ in 0..3 {
+            ed.move_right();
+        }
+        ed.insert_newline();
+        assert_eq!(ed.lines(), &["abc".to_string(), "def".to_string()]);
+        assert_eq!(ed.cursor(), (1, 0));
+    }
+
+    #[test]
+    fn backspace_joins_lines_at_start() {
+        let mut ed = Editor::new("abc\ndef", 4);
+        ed.move_down();
+        ed.move_home();
+        ed.backspace();
+        assert_eq!(ed.to_content(), "abcdef");
+        assert_eq!(ed.cursor(), (0, 3));
+    }
+
+    #[test]
+    fn backspace_within_line() {
+        let mut ed = Editor::new("abc", 4);
+        ed.move_end();
+        ed.backspace();
+        assert_eq!(ed.to_content(), "ab");
+    }
+
+    #[test]
+    fn delete_forward_joins_next_line() {
+        let mut ed = Editor::new("abc\ndef", 4);
+        ed.move_end();
+        ed.delete_forward();
+        assert_eq!(ed.to_content(), "abcdef");
+    }
+
+    #[test]
+    fn handles_utf8_correctly() {
+        let mut ed = Editor::new("héllo", 4);
+        ed.move_end();
+        ed.insert_char('!');
+        assert_eq!(ed.to_content(), "héllo!");
+    }
+
+    #[test]
+    fn ensure_visible_scrolls_down_when_cursor_leaves_viewport() {
+        let mut ed = Editor::new(&"line\n".repeat(20), 4);
+        for _ in 0..15 {
+            ed.move_down();
+        }
+        ed.ensure_visible(10);
+        assert!(ed.scroll() > 0);
+        assert!(ed.cursor().0 >= ed.scroll());
+        assert!(ed.cursor().0 < ed.scroll() + 10);
+    }
+}

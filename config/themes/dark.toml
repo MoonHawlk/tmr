@@ -1,0 +1,13 @@
+# tmr theme — dark (also the built-in default; this file lets you tweak it
+# without recompiling). Colors are "#rrggbb" hex or a small set of ANSI
+# names (black, red, green, yellow, blue, magenta, cyan, white, gray,
+# darkgray). Install at ~/.config/tmr/themes/dark.toml to override.
+name = "dark"
+foreground = "#cdd6f4"
+background = "#1e1e2e"
+accent = "#89b4fa"
+border = "#585b70"
+muted = "#6c7086"
+success = "#a6e3a1"
+warning = "#f9e2af"
+error = "#f38ba8"
