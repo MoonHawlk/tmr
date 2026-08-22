@@ -55,9 +55,14 @@ pub enum Mode {
     /// available any time in Normal mode regardless of focus or whether a
     /// document is open (Edit mode intercepts `h` as a literal character
     /// instead, so it never fires mid-edit). `query` filters the list as
-    /// the user types; nothing in this mode dispatches a `Command`.
+    /// the user types; `selected` is the highlighted row within the
+    /// filtered list (reset to 0 whenever `query` changes), used both to
+    /// mark a row and to let ratatui's `ListState` auto-scroll the list
+    /// into view on terminals too short to fit every entry at once.
+    /// Nothing in this mode dispatches a `Command`.
     Help {
         query: String,
+        selected: usize,
     },
     /// The interface-customization window, opened with `s` (default
     /// binding). `row` is the currently highlighted setting (0 = Theme,

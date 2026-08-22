@@ -9,6 +9,11 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- The `h` command-reference popup now supports `up`/`down` to move a
+  highlighted row, which auto-scrolls into view via ratatui's `ListState`
+  on terminals too short to fit every entry — previously the list just
+  clipped silently past the pane's bottom edge. See
+  `crates/tui/src/help.rs`.
 - `ctrl+a` selects the entire document in Edit mode (new default binding,
   `crates/core/src/keymap.rs`) — same selection mechanism as Shift+
   navigation, just anchored at the start and cursor at the end in one

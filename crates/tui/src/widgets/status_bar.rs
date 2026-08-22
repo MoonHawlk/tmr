@@ -60,7 +60,7 @@ pub fn draw(
                 Span::styled("ctrl+s save · esc back", Style::default().fg(palette.muted)),
             ])
         }
-        Mode::Help { query } => Line::from(vec![
+        Mode::Help { query, .. } => Line::from(vec![
             Span::styled("HELP ", Style::default().fg(palette.accent)),
             Span::raw(format!("search: {query}")),
             Span::styled("_  ", Style::default().fg(palette.muted)),

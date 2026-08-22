@@ -90,7 +90,7 @@ pub fn handle_key(
             handle_confirm_key(ui, app, resolved_keymap, key);
         }
         Mode::Help { .. } => {
-            handle_help_key(ui, key);
+            handle_help_key(ui, key, &app.keymap);
         }
         Mode::Settings { .. } => {
             handle_settings_key(ui, app, key, image_cap, width);
@@ -236,6 +236,7 @@ fn handle_action(
         "help" => {
             ui.mode = Mode::Help {
                 query: String::new(),
+                selected: 0,
             };
         }
         "settings" => {
@@ -446,15 +447,24 @@ fn submit_text_entry(
     let _ = (palette, image_cap, width);
 }
 
-fn handle_help_key(ui: &mut UiState, key: Key) {
-    let Mode::Help { query } = &mut ui.mode else {
+fn handle_help_key(ui: &mut UiState, key: Key, keymap: &tmr_core::keymap::Keymap) {
+    let Mode::Help { query, selected } = &mut ui.mode else {
         return;
     };
     match key.code {
         KeyCode::Esc => ui.mode = Mode::Normal,
-        KeyCode::Char(c) => query.push(c),
+        KeyCode::Up => *selected = selected.saturating_sub(1),
+        KeyCode::Down => {
+            let count = crate::help::visible_count(keymap, query);
+            *selected = (*selected + 1).min(count.saturating_sub(1));
+        }
+        KeyCode::Char(c) => {
+            query.push(c);
+            *selected = 0;
+        }
         KeyCode::Backspace => {
             query.pop();
+            *selected = 0;
         }
         _ => {}
     }

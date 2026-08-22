@@ -4,7 +4,7 @@
 use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph};
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
 use tmr_core::input::{Key, KeyCode};
@@ -86,15 +86,14 @@ fn centered_rect(percent_x: u16, percent_y: u16, area: Rect) -> Rect {
     Rect::new(x, y, width, height)
 }
 
-/// Draws the centered, `Clear`-backed popup listing every action bound in
-/// `keymap`, filtered case-insensitively by `query` against both the key
-/// and the description. Purely visual — nothing here dispatches a `Command`.
-pub fn draw(frame: &mut Frame, area: Rect, palette: &Palette, keymap: &Keymap, query: &str) {
-    let popup = centered_rect(70, 80, area);
-    frame.render_widget(Clear, popup);
-
+/// `ENTRIES` filtered case-insensitively by `query` against the action id,
+/// its resolved key and its description — resolved against `keymap` so the
+/// popup never lies about what a (possibly remapped) key does. Shared by
+/// `draw` (to render the rows) and `visible_count` (to clamp keyboard
+/// navigation against however many rows are actually showing).
+fn filtered<'a>(keymap: &Keymap, query: &str) -> Vec<(String, &'a str)> {
     let needle = query.to_ascii_lowercase();
-    let rows: Vec<ListItem> = ENTRIES
+    ENTRIES
         .iter()
         .filter_map(|(action, desc)| {
             let key = keymap
@@ -108,7 +107,39 @@ pub fn draw(frame: &mut Frame, area: Rect, palette: &Palette, keymap: &Keymap, q
             {
                 return None;
             }
-            Some(ListItem::new(Line::from(vec![
+            Some((key, *desc))
+        })
+        .collect()
+}
+
+/// How many rows the popup currently shows for `query` — used to clamp the
+/// `selected` row when the user navigates with Up/Down, since typing can
+/// shrink the filtered list out from under a previously-valid selection.
+pub fn visible_count(keymap: &Keymap, query: &str) -> usize {
+    filtered(keymap, query).len()
+}
+
+/// Draws the centered, `Clear`-backed popup listing every action bound in
+/// `keymap`, filtered case-insensitively by `query` against both the key
+/// and the description. `selected` is highlighted and, on terminals too
+/// short to fit every row, kept in view via `ListState`'s built-in
+/// auto-scroll. Purely visual — nothing here dispatches a `Command`.
+pub fn draw(
+    frame: &mut Frame,
+    area: Rect,
+    palette: &Palette,
+    keymap: &Keymap,
+    query: &str,
+    selected: usize,
+) {
+    let popup = centered_rect(70, 80, area);
+    frame.render_widget(Clear, popup);
+
+    let entries = filtered(keymap, query);
+    let rows: Vec<ListItem> = entries
+        .iter()
+        .map(|(key, desc)| {
+            ListItem::new(Line::from(vec![
                 Span::styled(
                     format!("{key:>10}  "),
                     Style::default()
@@ -116,7 +147,7 @@ pub fn draw(frame: &mut Frame, area: Rect, palette: &Palette, keymap: &Keymap, q
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(*desc),
-            ])))
+            ]))
         })
         .collect();
 
@@ -144,7 +175,14 @@ pub fn draw(frame: &mut Frame, area: Rect, palette: &Palette, keymap: &Keymap, q
     frame.render_widget(Paragraph::new(search_line), layout[0]);
 
     if has_matches {
-        frame.render_widget(List::new(rows), layout[1]);
+        let list = List::new(rows).highlight_style(
+            Style::default()
+                .add_modifier(Modifier::REVERSED)
+                .fg(palette.accent),
+        );
+        let mut state = ListState::default();
+        state.select(Some(selected.min(entries.len() - 1)));
+        frame.render_stateful_widget(list, layout[1], &mut state);
     } else {
         frame.render_widget(
             Paragraph::new(Span::styled(
@@ -153,5 +191,30 @@ pub fn draw(frame: &mut Frame, area: Rect, palette: &Palette, keymap: &Keymap, q
             )),
             layout[1],
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn visible_count_matches_all_entries_when_query_is_empty() {
+        let keymap = Keymap::default();
+        assert_eq!(visible_count(&keymap, ""), ENTRIES.len());
+    }
+
+    #[test]
+    fn visible_count_narrows_with_a_query() {
+        let keymap = Keymap::default();
+        let narrowed = visible_count(&keymap, "quit");
+        assert!(narrowed >= 1);
+        assert!(narrowed < ENTRIES.len());
+    }
+
+    #[test]
+    fn visible_count_is_zero_for_a_query_matching_nothing() {
+        let keymap = Keymap::default();
+        assert_eq!(visible_count(&keymap, "zzzzz-no-such-command"), 0);
     }
 }

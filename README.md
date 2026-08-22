@@ -48,7 +48,9 @@ tmr ~/notes
   `ctrl+a` selects the entire document the same way.
 - Line numbers in the Document pane's gutter (both the normal rendered
   view and the raw Edit-mode view).
-- A searchable command-reference popup (`h`).
+- A searchable command-reference popup (`h`), with `up`/`down` to move the
+  highlighted row and auto-scroll on terminals too short to fit every
+  entry at once.
 - A Settings window (`s`) for live interface customization: pick a color
   theme (`Default` / `Dark` / `Light (grey)`) and how the current line is
   marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
@@ -123,7 +125,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+r`    | Reload the current directory listing                |
 | `shift+arrows`/`shift+home`/`shift+end` | Edit mode only: select text from the cursor; `backspace`/`delete` removes it, typing replaces it |
 | `ctrl+a`    | Edit mode only: select the entire document              |
-| `h`         | Open the command-reference popup; type to filter, `esc` to close |
+| `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
 | `s`         | Open the Settings window (theme, line indicator); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `q`         | Quit                                                 |
 
@@ -251,6 +253,8 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Edit-mode cursor locator: raw source view, auto-scroll, a real
       terminal caret, and a `Ln X, Col Y` status readout
 - [x] `h` command-reference popup (searchable)
+- [x] Scrolling/keyboard navigation inside the `h` popup (`up`/`down`
+      move the highlighted row, auto-scrolling on short terminals)
 - [x] Line numbers in the Document pane's gutter
 - [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
       and a Highlight-vs-Bar current-line indicator
@@ -272,10 +276,6 @@ as part of any change that adds/fixes user-facing behavior.
       column rather than scrolling the view (same root cause as the
       no-word-wrap limitation above) — also affects how far a selection
       can be seen once it runs past the right edge
-- [ ] Scrolling/keyboard navigation inside the `h` command-reference
-      popup for terminals too short to fit every entry at once (it
-      currently just clips silently, relying on the search filter to
-      narrow the list instead)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
 - [ ] Recursive/global search across the workspace
 - [ ] Config/theme hot-reload without restarting tmr
@@ -315,8 +315,9 @@ logic are all plain functions/structs testable in isolation:
   code blocks, blockquotes, tables, links, images, thematic breaks) and
   checkbox toggling (index-based, nested lists, no-trailing-newline files).
 - `tmr-tui`: the built-in editor buffer (insert/delete/UTF-8/scrolling,
-  Shift-selection extend/normalize/delete), color parsing, and Markdown-
-  AST-to-terminal-lines rendering (task index tracking, image fallback,
-  gutter width, and the selection-highlight span-splitting logic).
+  Shift-selection extend/normalize/delete, select-all), color parsing, and
+  Markdown-AST-to-terminal-lines rendering (task index tracking, image
+  fallback, gutter width, and the selection-highlight span-splitting
+  logic), and the `h` popup's query-filtering logic.
 
 Run everything with `cargo test --workspace`.

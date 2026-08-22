@@ -84,8 +84,8 @@ pub fn draw(
         }
     }
 
-    if let Mode::Help { query } = &ui.mode {
-        help::draw(frame, frame.area(), palette, &app.keymap, query);
+    if let Mode::Help { query, selected } = &ui.mode {
+        help::draw(frame, frame.area(), palette, &app.keymap, query, *selected);
     }
 
     if let Mode::Settings { row } = &ui.mode {
