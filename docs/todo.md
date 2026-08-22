@@ -75,7 +75,7 @@ fixes user-facing behavior.
 
 ### Roadmap / Product Direction
 
-- [ ] Add a dedicated section to the README describing future features
+- [x] Add a dedicated section to the README describing future features
       and the long-term purpose of TMR.
 
       This section should distinguish implemented functionality, planned
