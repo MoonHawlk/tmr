@@ -578,17 +578,18 @@ fn handle_help_key(ui: &mut UiState, key: Key, keymap: &tmr_core::keymap::Keymap
     }
 }
 
-/// Row 0 is the Theme picker, row 1 the Line-indicator picker, row 2 the
-/// Timer bar toggle. Changing the theme takes effect immediately: it
-/// updates `app.theme` and re-renders the cached document view
-/// (`ui.rendered` bakes in colors at render time, unlike the borders/
-/// status-bar/popups, which read the palette live every frame — see
-/// `lib.rs::run_loop`'s per-iteration `Palette::from_theme`). The Timer
-/// toggle flips `app.config.ui.timer` directly — the TUI already reads
-/// that field live every frame (`ui.rs::draw`'s `compute_panes` call), so
-/// there's no separate `UiState` mirror to keep in sync the way Theme and
-/// Line indicator need one.
-const SETTINGS_ROW_COUNT: usize = 3;
+/// Row 0 is the Theme picker, row 1 the Border style picker, row 2 the
+/// Line-indicator picker, row 3 the Timer bar toggle. Changing the theme
+/// takes effect immediately: it updates `app.theme` and re-renders the
+/// cached document view (`ui.rendered` bakes in colors at render time,
+/// unlike the borders/status-bar/popups, which read the palette live every
+/// frame — see `lib.rs::run_loop`'s per-iteration `Palette::from_theme`).
+/// Border and Timer both flip `app.config.ui.*` directly — the TUI already
+/// reads those fields live every frame (`layout::styled_block`,
+/// `ui.rs::draw`'s `compute_panes` call), so there's no separate
+/// `UiState` mirror to keep in sync the way Theme and Line indicator need
+/// one.
+const SETTINGS_ROW_COUNT: usize = 4;
 
 fn handle_settings_key(
     ui: &mut UiState,
@@ -625,7 +626,14 @@ fn handle_settings_key(
                     let live_palette = Palette::from_theme(&app.theme);
                     refresh_rendered(ui, app, &live_palette, image_cap, width);
                 }
-                1 => ui.line_indicator = ui.line_indicator.toggled(),
+                1 => {
+                    app.config.ui.border = if key.code == KeyCode::Left {
+                        app.config.ui.border.prev()
+                    } else {
+                        app.config.ui.border.next()
+                    };
+                }
+                2 => ui.line_indicator = ui.line_indicator.toggled(),
                 _ => app.config.ui.timer = !app.config.ui.timer,
             }
             persist_settings(ui, app);
@@ -647,9 +655,13 @@ fn persist_settings(ui: &mut UiState, app: &App) {
     };
     let theme_name = ui.theme_choice.persisted_name(&ui.default_theme_name);
     let indicator = ui.line_indicator.config_str();
-    if let Err(e) =
-        tmr_core::config::persist_settings(&path, &theme_name, indicator, app.config.ui.timer)
-    {
+    if let Err(e) = tmr_core::config::persist_settings(
+        &path,
+        &theme_name,
+        indicator,
+        app.config.ui.timer,
+        app.config.ui.border.config_str(),
+    ) {
         ui.set_status(
             format!("Settings applied but not saved: {e}"),
             StatusLevel::Error,

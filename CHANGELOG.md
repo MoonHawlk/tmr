@@ -165,6 +165,14 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Fixed
 
+- Border styles (Ascii/Rounded/Double/None) were only reachable by editing
+  `config.toml` directly — the Settings window had no row for them. Added
+  a "Border" row (between Theme and Line indicator), cycled live with
+  `left`/`right`/`enter` the same way Theme is, and persisted to
+  `[ui] border`. `BorderStyle` gained `ALL`/`label`/`next`/`prev`/
+  `config_str` helpers in `crates/core/src/config.rs`, mirroring
+  `ThemeChoice`'s existing shape; `persist_settings` now writes `ui.border`
+  too.
 - Status bar no longer gets stuck on a transient message (e.g. "Saved",
   "Deleted") until the next command — it now reverts to the default helper
   bar on its own after a few seconds. `UiState::status` carries the

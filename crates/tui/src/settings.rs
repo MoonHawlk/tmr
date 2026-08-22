@@ -9,6 +9,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::Frame;
 
+use tmr_core::config::BorderStyle;
+
 use crate::state::{LineIndicatorStyle, ThemeChoice};
 use crate::theme::Palette;
 
@@ -73,6 +75,7 @@ pub fn draw(
     area: Rect,
     palette: &Palette,
     theme_choice: ThemeChoice,
+    border: BorderStyle,
     line_indicator: LineIndicatorStyle,
     timer: bool,
     row: usize,
@@ -95,6 +98,7 @@ pub fn draw(
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
+            Constraint::Length(1),
             Constraint::Min(0),
         ])
         .margin(1)
@@ -107,6 +111,15 @@ pub fn draw(
     frame.render_widget(
         Paragraph::new(option_row("Theme", &theme_options, row == 0, palette)),
         rows[0],
+    );
+
+    let border_options: Vec<(&'static str, bool)> = BorderStyle::ALL
+        .iter()
+        .map(|b| (b.label(), *b == border))
+        .collect();
+    frame.render_widget(
+        Paragraph::new(option_row("Border", &border_options, row == 1, palette)),
+        rows[1],
     );
 
     let indicator_options = [
@@ -123,15 +136,15 @@ pub fn draw(
         Paragraph::new(option_row(
             "Line indicator",
             &indicator_options,
-            row == 1,
+            row == 2,
             palette,
         )),
-        rows[1],
+        rows[2],
     );
 
     let timer_options = [("On", timer), ("Off", !timer)];
     frame.render_widget(
-        Paragraph::new(option_row("Timer bar", &timer_options, row == 2, palette)),
-        rows[2],
+        Paragraph::new(option_row("Timer bar", &timer_options, row == 3, palette)),
+        rows[3],
     );
 }

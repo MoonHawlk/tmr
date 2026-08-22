@@ -20,7 +20,9 @@ name = "dark"
 
 [ui]
 # Border style for panes: "ascii" (+--+ style), "rounded", "double" (a
-# denser, more app-like ╔═╗ panel look), or "none".
+# denser, more app-like ╔═╗ panel look), or "none". Also settable live
+# from the in-app Settings window (`s`), which writes its choice straight
+# back here.
 border = "ascii"
 # Show dotfiles in the file browser.
 show_hidden = false

@@ -105,6 +105,7 @@ pub fn draw(
             frame.area(),
             palette,
             ui.theme_choice,
+            app.config.ui.border,
             ui.line_indicator,
             app.config.ui.timer,
             *row,

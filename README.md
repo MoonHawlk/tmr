@@ -56,9 +56,10 @@ tmr ~/notes
   highlighted row and auto-scroll on terminals too short to fit every
   entry at once.
 - A Settings window (`s`) for live interface customization: pick a color
-  theme (`Default` / `Dark` / `Light (grey)`), how the current line is
+  theme (`Default` / `Dark` / `Light (grey)`), a pane border style
+  (`ASCII` / `Rounded` / `Double` / `None`), how the current line is
   marked (full-line `Highlight` or a `Bar` gutter marker), and whether the
-  Timer bar is shown (`On`/`Off`) — no restart needed, and all three
+  Timer bar is shown (`On`/`Off`) — no restart needed, and all four
   choices are persisted to `config.toml` as you change them, so they
   survive a restart too.
 - An optional Timer bar (`[ui] timer = true`, or toggle it live from the
@@ -155,7 +156,7 @@ All of these are remappable — see [Configuration](#configuration). Defaults:
 | `ctrl+a`    | Edit mode only: select the entire document              |
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
-| `s`         | Open the Settings window (theme, line indicator, timer bar); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
+| `s`         | Open the Settings window (theme, border style, line indicator, timer bar); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
 | `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
 | `q`         | Quit                                                 |
 
@@ -192,8 +193,8 @@ from `light`'s blue/lavender tint. Any other name is looked up at
 pick `Dark`/`Light (grey)` from the in-app Settings window (`s`) instead —
 see [Keybindings](#keybindings); that switch is live and, as of the
 choice you make, also written straight back to `[theme] name` in
-`config.toml` (along with `[ui] line_indicator` and `[ui] timer`) — see
-`tmr_core::config::persist_settings`, which edits just those keys via
+`config.toml` (along with `[ui] border`, `[ui] line_indicator` and
+`[ui] timer`) — see `tmr_core::config::persist_settings`, which edits just those keys via
 `toml_edit` so the rest of your file (comments included) is left alone.
 
 ## Architecture
@@ -291,7 +292,10 @@ fixes user-facing behavior.
 
 ### Bugs / Fixes
 
-- [ ] (BUG) Make the newly available border styles selectable from the Settings window.
+- [x] (BUG) Make the newly available border styles selectable from the Settings window.
+      — new "Border" row (ASCII/Rounded/Double/None), cycled with `left`/`right`, applied live
+      and persisted to `[ui] border` (`crates/tui/src/settings.rs`,
+      `crates/tui/src/input.rs::handle_settings_key`).
 
 ### Core UX
 
@@ -316,6 +320,7 @@ fixes user-facing behavior.
 
 - [ ] Rendering support for a second document format (TXT/JSON/YAML), to
       exercise the `DocumentFormat` dispatch point beyond Markdown-vs-plain
+      ONLY ALLOW THIS IF THE USED SET AS POSSIBLE AT CONFIG WINDOW
 
 ### Productivity
 
@@ -349,7 +354,7 @@ fixes user-facing behavior.
       This section should distinguish implemented functionality, planned
       functionality and experimental ideas, keeping the project's scope
       clear as it grows.
-      
+
 ## Development
 
 ```sh
