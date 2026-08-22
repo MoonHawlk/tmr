@@ -9,6 +9,17 @@ the README's [TODO section](README.md#todo) for what's still open.
 
 ### Added
 
+- The Settings window's theme and line-indicator choices are now
+  persisted to `config.toml` as you change them (`[theme] name` and a new
+  `[ui] line_indicator` key), instead of resetting to whatever was
+  configured at startup every time tmr restarts. Writes go through a new
+  `tmr_core::config::persist_settings`, which edits just those two keys
+  in place via `toml_edit::DocumentMut` — a format-preserving parser, so
+  the rest of the file (comments, ordering, unrelated keys) survives
+  untouched, unlike this module's existing `toml`-crate-based struct
+  loading. A write failure (e.g. no writable config dir) surfaces as a
+  status-bar error but doesn't block the live in-memory change. See
+  `crates/core/src/config.rs` and `input.rs::persist_settings`.
 - Horizontal scroll for the Edit-mode raw-source view: a cursor column
   past the pane's right edge now scrolls the view to follow it, instead
   of clamping the terminal cursor to the last visible column while the

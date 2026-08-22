@@ -530,10 +530,30 @@ fn handle_settings_key(
             } else {
                 ui.line_indicator = ui.line_indicator.toggled();
             }
+            persist_settings(ui);
         }
         _ => {
             ui.mode = Mode::Settings { row };
         }
+    }
+}
+
+/// Writes the Settings window's current choices to `config.toml`, so they
+/// survive a restart instead of resetting to whatever was configured at
+/// startup. Best-effort: a write failure (no config dir resolvable, no
+/// permission, etc.) just surfaces a status message — the choice still
+/// applies live either way, it just won't persist this time.
+fn persist_settings(ui: &mut UiState) {
+    let Some(path) = tmr_core::config::default_config_path() else {
+        return;
+    };
+    let theme_name = ui.theme_choice.persisted_name(&ui.default_theme_name);
+    let indicator = ui.line_indicator.config_str();
+    if let Err(e) = tmr_core::config::persist_settings(&path, &theme_name, indicator) {
+        ui.set_status(
+            format!("Settings applied but not saved: {e}"),
+            StatusLevel::Error,
+        );
     }
 }
 

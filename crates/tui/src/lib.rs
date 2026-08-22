@@ -61,6 +61,10 @@ pub fn run(mut app: App) -> io::Result<()> {
 fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> io::Result<()> {
     let mut ui = UiState {
         default_theme: app.theme.clone(),
+        default_theme_name: app.config.theme.name.clone(),
+        line_indicator: crate::state::LineIndicatorStyle::from_config_str(
+            &app.config.ui.line_indicator,
+        ),
         ..UiState::default()
     };
     let image_cap = image_backend::detect_capability();

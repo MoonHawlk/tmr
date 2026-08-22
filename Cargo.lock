@@ -802,6 +802,7 @@ dependencies = [
  "thiserror",
  "tmr-markdown",
  "toml",
+ "toml_edit",
 ]
 
 [[package]]

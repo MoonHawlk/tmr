@@ -23,6 +23,11 @@ name = "dark"
 border = "ascii"
 # Show dotfiles in the file browser.
 show_hidden = false
+# How the Document pane marks its current line: "highlight" (full-line
+# reverse-video) or "bar" (a single marker in the gutter). Also settable
+# live from the in-app Settings window (`s`), which writes its choice
+# straight back here.
+line_indicator = "highlight"
 
 [editor]
 # Number of spaces inserted by Tab in the built-in editor.

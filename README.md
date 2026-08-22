@@ -54,7 +54,8 @@ tmr ~/notes
 - A Settings window (`s`) for live interface customization: pick a color
   theme (`Default` / `Dark` / `Light (grey)`) and how the current line is
   marked (full-line `Highlight` or a `Bar` gutter marker) — no restart
-  needed.
+  needed, and both choices are persisted to `config.toml` as you change
+  them, so they survive a restart too.
 - Filename search and in-document text search.
 - Image rendering when the terminal supports truecolor (Unicode half-block
   approximation), with an elegant `[image: name.png]` fallback otherwise.
@@ -142,9 +143,9 @@ cp config/config.example.toml ~/.config/tmr/config.toml
 ```
 
 Key sections: `[workspace]` (default directory), `[theme]` (which palette
-to use), `[ui]` (border style, hidden files), `[editor]` (tab width),
-`[keys]` (any keybinding override), `[addons]` / `[widgets]` (which
-compiled-in addons/widgets to enable by id).
+to use), `[ui]` (border style, hidden files, current-line indicator),
+`[editor]` (tab width), `[keys]` (any keybinding override), `[addons]` /
+`[widgets]` (which compiled-in addons/widgets to enable by id).
 
 ### Themes
 
@@ -157,10 +158,13 @@ from `light`'s blue/lavender tint. Any other name is looked up at
 [`config/themes/grey.toml`](config/themes/grey.toml) for the format
 (plain `foreground`/`background`/`accent`/`border`/`muted`/`success`/
 `warning`/`error` hex colors). Copy one, tweak the colors, and point
-`[theme] name` at your new file's name — no rebuild needed. To try
-`Dark`/`Light (grey)` without touching `config.toml`, use the in-app
-Settings window (`s`) instead — see [Keybindings](#keybindings); that
-switch is live but session-only (not saved to disk).
+`[theme] name` at your new file's name — no rebuild needed. You can also
+pick `Dark`/`Light (grey)` from the in-app Settings window (`s`) instead —
+see [Keybindings](#keybindings); that switch is live and, as of the
+choice you make, also written straight back to `[theme] name` in
+`config.toml` (along with `[ui] line_indicator`) — see
+`tmr_core::config::persist_settings`, which edits just those two keys via
+`toml_edit` so the rest of your file (comments included) is left alone.
 
 ## Architecture
 
@@ -269,6 +273,8 @@ as part of any change that adds/fixes user-facing behavior.
 - [x] Horizontal scroll for the Edit-mode cursor locator: a column past
       the pane's right edge now scrolls the raw-source view instead of
       clamping the cursor to the last visible column
+- [x] Persist Settings-window choices (theme, line indicator) to
+      `config.toml` — previously session-only, resetting on restart
 - [x] Line numbers in the Document pane's gutter
 - [x] `s` Settings window: live theme switching (Default/Dark/Light-grey)
       and a Highlight-vs-Bar current-line indicator
@@ -279,10 +285,6 @@ as part of any change that adds/fixes user-facing behavior.
       exists now, but there's no clipboard integration yet — `Ctrl+C`/
       `Ctrl+X` are unbound)
 - [ ] Double-click/word-level selection
-- [ ] Persist Settings-window choices (theme, line indicator) to
-      `config.toml` — they currently apply live but are session-only,
-      reset to `[theme] name`'s configured value and `Highlight` on
-      restart
 - [ ] Word-wrap for long lines (currently clipped — see Roadmap above)
 - [ ] Kitty/iTerm2/Sixel image backends (currently half-block only)
 - [ ] Recursive/global search across the workspace
@@ -315,10 +317,11 @@ TUI initialization required — the engine, parser and rendering-to-lines
 logic are all plain functions/structs testable in isolation:
 
 - `tmr-core`: filesystem ops (create/save/delete/rename, size guard,
-  workspace containment), config loading (missing/partial/invalid file),
-  theme resolution, keymap parsing/overrides, search, the `App` engine's
-  command dispatch (open/save/toggle-task/create/delete + addon/widget
-  event fan-out).
+  workspace containment), config loading (missing/partial/invalid file)
+  and settings persistence (`persist_settings`'s format-preserving
+  partial-file writes), theme resolution, keymap parsing/overrides,
+  search, the `App` engine's command dispatch (open/save/toggle-task/
+  create/delete + addon/widget event fan-out).
 - `tmr-markdown`: the Markdown parser (headings, lists, nested task lists,
   code blocks, blockquotes, tables, links, images, thematic breaks) and
   checkbox toggling (index-based, nested lists, no-trailing-newline files).

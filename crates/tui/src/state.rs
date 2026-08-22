@@ -112,6 +112,21 @@ impl ThemeChoice {
         }
     }
 
+    /// The `[theme] name` value to persist for this choice — `Default`
+    /// round-trips whatever `config.toml` already had (`default_name`,
+    /// snapshotted at startup in `UiState::default_theme_name`), since it
+    /// has no single canonical name of its own (it could be a custom
+    /// theme file). `Dark`/`Light` map to the same built-in names
+    /// `Theme::resolve` understands (`Light` here is the `grey` palette —
+    /// see `resolve`'s `ThemeChoice::Light` arm).
+    pub fn persisted_name(self, default_name: &str) -> String {
+        match self {
+            ThemeChoice::Default => default_name.to_string(),
+            ThemeChoice::Dark => "dark".to_string(),
+            ThemeChoice::Light => "grey".to_string(),
+        }
+    }
+
     /// Resolves this choice to an actual [`Theme`], given the theme tmr
     /// loaded at startup (what `Default` means).
     pub fn resolve(self, default_theme: &Theme) -> Theme {
@@ -147,6 +162,24 @@ impl LineIndicatorStyle {
             LineIndicatorStyle::Bar => LineIndicatorStyle::Highlight,
         }
     }
+
+    /// The `[ui] line_indicator` string to persist/read for this style.
+    pub fn config_str(self) -> &'static str {
+        match self {
+            LineIndicatorStyle::Highlight => "highlight",
+            LineIndicatorStyle::Bar => "bar",
+        }
+    }
+
+    /// Parses a `[ui] line_indicator` config value, falling back to
+    /// `Highlight` for anything unrecognized (including an absent key,
+    /// which deserializes to `UiConfig::default`'s `"highlight"`).
+    pub fn from_config_str(s: &str) -> Self {
+        match s {
+            "bar" => LineIndicatorStyle::Bar,
+            _ => LineIndicatorStyle::Highlight,
+        }
+    }
 }
 
 /// All interaction/presentation state that isn't part of the core engine:
@@ -176,6 +209,12 @@ pub struct UiState {
     /// construction in `lib.rs::run_loop`, once `App`'s theme is known —
     /// `UiState::default()` can't see it, so this starts as a placeholder.
     pub default_theme: Theme,
+    /// The exact `config.toml` `[theme] name` string tmr started with —
+    /// distinct from `default_theme.name`, which can be empty for a custom
+    /// theme file that doesn't set its own `name` key. Used by
+    /// `ThemeChoice::persisted_name` to round-trip `Default` back to disk
+    /// without guessing. Also set in `lib.rs::run_loop`.
+    pub default_theme_name: String,
 }
 
 impl Default for UiState {
@@ -194,6 +233,7 @@ impl Default for UiState {
             theme_choice: ThemeChoice::Default,
             line_indicator: LineIndicatorStyle::Highlight,
             default_theme: Theme::default(),
+            default_theme_name: String::new(),
         }
     }
 }
