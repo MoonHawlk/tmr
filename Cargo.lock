@@ -785,7 +785,7 @@ dependencies = [
 
 [[package]]
 name = "tmr"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "tmr-core",
@@ -794,7 +794,7 @@ dependencies = [
 
 [[package]]
 name = "tmr-core"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "dirs",
  "serde",
@@ -807,14 +807,14 @@ dependencies = [
 
 [[package]]
 name = "tmr-markdown"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "pulldown-cmark",
 ]
 
 [[package]]
 name = "tmr-tui"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "crossterm",
  "image",

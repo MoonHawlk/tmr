@@ -20,6 +20,13 @@ fixes user-facing behavior.
 - [ ] Undo/redo in the built-in editor
 - [ ] Mouse support (click to select/open, scroll, drag-to-select text)
 
+### CLI
+
+- [ ] `tmr --version` / `-V` — print the crate version and exit, same as
+      `--help` does today. `src/main.rs::parse_args` currently only
+      recognizes `-h`/`--help`; any other flag is treated as a directory
+      argument.
+
 ### Search
 
 - [ ] Recursive/global search across the workspace

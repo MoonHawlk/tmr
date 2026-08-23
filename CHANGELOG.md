@@ -7,6 +7,10 @@ updated as part of every change that touches user-facing behavior — see
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-23
+
+First stable release.
+
 ### Changed
 
 - `README.md` cut down to a minimal landing page — the animated `docs/`
