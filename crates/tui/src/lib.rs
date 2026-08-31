@@ -107,21 +107,30 @@ fn run_loop(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) ->
         // widget.
         let needs_periodic_redraw = has_ticking_widget || app.config.ui.timer;
         let timeout = if needs_periodic_redraw {
-            Duration::from_millis(500)
+            Some(Duration::from_millis(500))
         } else if ui.status.is_some() {
             // A status message is pending expiry: poll periodically instead
             // of blocking indefinitely, so it gets cleared (and the bar
             // redrawn) close to `STATUS_TTL` even if the user is idle.
-            Duration::from_millis(250)
+            Some(Duration::from_millis(250))
         } else {
             // No widget needs periodic redraws: block indefinitely on the
-            // next terminal event rather than polling.
-            Duration::from_secs(u64::MAX / 2)
+            // next terminal event instead of polling. Note: this must stay
+            // a genuine `None` (skipping `event::poll` entirely) rather than
+            // a huge sentinel `Duration` passed to `event::poll` — crossterm
+            // forwards that duration into a kqueue `timespec` on macOS,
+            // and the kernel rejects a near-`i64::MAX` timeout with EINVAL
+            // when computing the deadline (Linux's epoll takes a 32-bit
+            // millisecond timeout, so the same sentinel silently saturates
+            // there instead of erroring).
+            None
         };
 
-        if !event::poll(timeout)? {
-            app.tick_widgets();
-            continue;
+        if let Some(timeout) = timeout {
+            if !event::poll(timeout)? {
+                app.tick_widgets();
+                continue;
+            }
         }
 
         let Event::Key(key_event) = event::read()? else {

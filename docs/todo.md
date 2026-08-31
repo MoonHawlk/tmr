@@ -13,6 +13,19 @@ fixes user-facing behavior.
       and persisted to `[ui] border` (`crates/tui/src/settings.rs`,
       `crates/tui/src/input.rs::handle_settings_key`).
 
+- [x] (BUG) `tmr` crashed instantly on macOS with "terminal UI exited with
+      an error / Invalid argument (os error 22)", every launch.
+      — root cause: `crates/tui/src/lib.rs::run_loop` polled with a
+      `Duration::from_secs(u64::MAX / 2)` sentinel to mean "block
+      indefinitely". Crossterm forwards that duration into a kqueue
+      `timespec`; macOS's kernel rejects the resulting near-`i64::MAX`
+      timeout with EINVAL when computing the deadline (Linux's epoll takes
+      a 32-bit millisecond timeout, so the same sentinel just saturates
+      there instead of erroring — that's why it only broke on macOS).
+      Fixed by using a real `Option<Duration>` and calling `event::read()`
+      directly (skipping `event::poll` entirely) when there's nothing to
+      poll for, instead of passing a giant duration through `poll`.
+
 ### Core UX
 
 - [ ] Double-click/word-level selection

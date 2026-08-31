@@ -7,6 +7,20 @@ updated as part of every change that touches user-facing behavior — see
 
 ## [Unreleased]
 
+### Fixed
+
+- `tmr` crashed instantly on macOS with "terminal UI exited with an
+  error / Invalid argument (os error 22)" on every launch. Root cause:
+  `crates/tui/src/lib.rs::run_loop` polled with a
+  `Duration::from_secs(u64::MAX / 2)` sentinel meaning "block
+  indefinitely"; crossterm forwards that into a kqueue `timespec`, and
+  macOS's kernel rejects the resulting near-`i64::MAX` timeout with
+  EINVAL (Linux's epoll takes a 32-bit millisecond timeout, so the same
+  sentinel just saturates there instead of erroring — why this was
+  Linux/WSL-only-working). Fixed by using a real `Option<Duration>` and
+  calling `event::read()` directly when there's nothing to poll for,
+  instead of passing a giant duration through `event::poll`.
+
 ## [2.0.0] - 2026-08-23
 
 First stable release.
