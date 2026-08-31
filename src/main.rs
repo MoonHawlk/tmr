@@ -44,7 +44,7 @@ fn print_usage() {
     println!("  ctrl+n           new file        r   rename        d   delete");
     println!("  ctrl+s           save (Edit mode)   esc   cancel / leave Edit mode");
     println!("  ctrl+t           Quick-TODO window   ctrl+e   export tasks to .tsv");
-    println!("  s                Settings window     alt+c    Calendar window");
+    println!("  s                Settings window      c   Calendar window");
     println!("  ctrl+r           reload directory + config.toml");
     println!("  h                command-reference popup (searchable)");
     println!("  q                quit");

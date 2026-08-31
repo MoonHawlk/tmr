@@ -51,7 +51,7 @@
   of being shown as plain text. Off by default, so a `.json` file renders
   exactly as it always has unless you opt in — see
   `crates/tui/src/json_view.rs`.
-- A Calendar window (`alt+c`): a small popup with a mini month-preview
+- A Calendar window (`c`): a small popup with a mini month-preview
   grid, aligned like a standard calendar (weekday columns, today's day
   highlighted). `left`/`right` moves to the adjacent month, `esc` closes.
 - A Quick-TODO window (`ctrl+t`): a minimal task list, independent of any

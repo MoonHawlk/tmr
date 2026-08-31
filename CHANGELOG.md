@@ -15,6 +15,13 @@ updated as part of every change that touches user-facing behavior — see
 
 - `tmr --help` now prints usage, options and a key-bindings summary
   instead of just the DIRECTORY note (`src/main.rs::print_usage`).
+- The Calendar window's default binding changed from `alt+c` to `c`
+  (`crates/core/src/keymap.rs`). `alt+`-modified keys depend on the
+  terminal sending an `ESC`-prefixed sequence for Option/Alt combos; most
+  macOS terminals don't do this out of the box (Option composes an
+  accented character instead), so `alt+c` silently never fired there.
+  `c` works identically in every terminal, with no configuration. Still
+  remappable via `[keys]` in `config.toml` either way.
 
 ### Fixed
 

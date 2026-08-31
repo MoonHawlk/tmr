@@ -26,6 +26,13 @@ fixes user-facing behavior.
       directly (skipping `event::poll` entirely) when there's nothing to
       poll for, instead of passing a giant duration through `poll`.
 
+- [x] (BUG) The Calendar window's `alt+c` default binding never fired on
+      most macOS terminals, since Option composes an accented character
+      there by default instead of sending the `ESC`-prefixed sequence
+      crossterm needs to detect Alt. Changed the default to `c`
+      (`crates/core/src/keymap.rs`), which needs no terminal
+      configuration on any platform. Still remappable via `[keys]`.
+
 ### Core UX
 
 - [ ] Double-click/word-level selection

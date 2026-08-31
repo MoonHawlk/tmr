@@ -83,7 +83,7 @@ pub enum Mode {
     Settings {
         row: usize,
     },
-    /// The Calendar window, opened with `alt+c` (default binding): a
+    /// The Calendar window, opened with `c` (default binding): a
     /// mini month-preview grid, aligned like a standard calendar, with
     /// today's day highlighted when viewing the current month.
     /// `month_offset` is the number of months away from the current one

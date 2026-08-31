@@ -26,7 +26,7 @@ const DEFAULTS: &[(&str, &str)] = &[
     ("focus_files", "tab"),
     ("help", "h"),
     ("settings", "s"),
-    ("calendar", "alt+c"),
+    ("calendar", "c"),
     ("select_all", "ctrl+a"),
     ("copy", "ctrl+c"),
     ("cut", "ctrl+x"),

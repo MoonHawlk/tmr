@@ -1,4 +1,4 @@
-//! The Calendar window: a small popup (default binding `alt+c`) showing a
+//! The Calendar window: a small popup (default binding `c`) showing a
 //! mini month-grid preview, aligned like a standard calendar — weekday
 //! columns, today's day highlighted. `left`/`right` moves to the adjacent
 //! month; `esc` closes it. Purely visual; nothing here dispatches a

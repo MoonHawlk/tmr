@@ -21,7 +21,7 @@ All of these are remappable — see [Configuration](configuration.md). Defaults:
 | `ctrl+c`/`ctrl+x` | Edit mode only: copy/cut the current selection to the system clipboard |
 | `h`         | Open the command-reference popup; type to filter, `up`/`down` to move the highlighted row, `esc` to close |
 | `s`         | Open the Settings window (theme, border style, line indicator, timer bar, JSON highlighting); `up`/`down` select, `left`/`right`/`enter` change, `esc` close |
-| `alt+c`     | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
+| `c`         | Open the Calendar window (mini month preview, today highlighted); `left`/`right` change month, `esc` close |
 | `ctrl+t`    | Open the Quick-TODO window; `ctrl+n` new task, `space`/`enter` toggle done, `shift+↑`/`shift+↓` reorder, `d` delete, `esc` close |
 | `ctrl+e`    | Export all tasks (current + historical) to `.tsv`, asking for confirmation first |
 | `q`         | Quit                                                 |
