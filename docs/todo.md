@@ -35,10 +35,10 @@ fixes user-facing behavior.
 
 ### CLI
 
-- [ ] `tmr --version` / `-V` — print the crate version and exit, same as
-      `--help` does today. `src/main.rs::parse_args` currently only
-      recognizes `-h`/`--help`; any other flag is treated as a directory
-      argument.
+- [x] `tmr --version` / `-V` — print the crate version and exit.
+      — `src/main.rs::parse_args`/`print_version`. Also rewrote `--help`
+      (`print_usage`) to include usage, options and a key-bindings summary
+      instead of just the DIRECTORY note.
 
 ### Search
 

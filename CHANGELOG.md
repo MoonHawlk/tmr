@@ -7,6 +7,15 @@ updated as part of every change that touches user-facing behavior — see
 
 ## [Unreleased]
 
+### Added
+
+- `tmr --version`/`-V`, printing the crate version and exiting.
+
+### Changed
+
+- `tmr --help` now prints usage, options and a key-bindings summary
+  instead of just the DIRECTORY note (`src/main.rs::print_usage`).
+
 ### Fixed
 
 - `tmr` crashed instantly on macOS with "terminal UI exited with an
